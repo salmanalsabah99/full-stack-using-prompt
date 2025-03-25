@@ -32,7 +32,7 @@ export function validateRequest<T>(
   };
 }
 
-export function handleApiError(error: unknown, message: string): NextResponse<ApiResponse<never>> {
+export function handleApiError(error: unknown, message: string): NextResponse<ApiResponse<null>> {
   console.error(message, error);
-  return createApiResponse(undefined, message, 500);
+  return createApiResponse(null, message, 500);
 } 

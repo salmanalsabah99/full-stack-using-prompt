@@ -179,19 +179,35 @@ export default function TaskBoard() {
       const existingTask = lists.flatMap(list => list.tasks).find(task => task.id === taskId);
       
       if (!existingTask) {
-        // This is a new task, update the lists state
-        const now = new Date();
-        setLists(prev => prev.map(list => ({
-          ...list,
-          tasks: [...list.tasks, {
-            id: taskId,
+        // This is a new task, add it to the first list
+        const firstList = lists[0];
+        if (!firstList) return;
+
+        // Create the task in the database
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             content,
-            listId: list.id,
-            order: list.tasks.length,
-            createdAt: now,
-            updatedAt: now
-          }]
-        })));
+            listId: firstList.id,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create task');
+        }
+
+        const newTask = await response.json();
+        
+        // Update the UI with the new task
+        setLists(prev => prev.map(list => 
+          list.id === firstList.id 
+            ? {
+                ...list,
+                tasks: [...list.tasks, newTask]
+              }
+            : list
+        ));
         return;
       }
 
@@ -250,7 +266,26 @@ export default function TaskBoard() {
     return (
       <div className="text-center text-white/90">
         <p className="text-lg mb-4">No task lists found</p>
-        <p className="text-sm text-white/70">Create your first list to get started</p>
+        <p className="text-sm text-white/70 mb-6">Create your first list to get started</p>
+        {isCreatingList ? (
+          <form onSubmit={handleCreateList} className="max-w-md mx-auto">
+            <input
+              type="text"
+              value={newListTitle}
+              onChange={(e) => setNewListTitle(e.target.value)}
+              placeholder="Enter list title"
+              className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              autoFocus
+            />
+          </form>
+        ) : (
+          <button
+            onClick={() => setIsCreatingList(true)}
+            className="px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+          >
+            Add List
+          </button>
+        )}
       </div>
     );
   }
@@ -274,41 +309,23 @@ export default function TaskBoard() {
       {/* Add New List */}
       {isCreatingList ? (
         <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg w-64 flex flex-col gap-3 text-white">
-          <form onSubmit={handleCreateList} className="flex flex-col gap-3">
+          <form onSubmit={handleCreateList}>
             <input
               type="text"
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
-              placeholder="Enter list title..."
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30"
+              placeholder="Enter list title"
+              className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
               autoFocus
             />
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-              >
-                Create List
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsCreatingList(false);
-                  setNewListTitle('');
-                }}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
           </form>
         </div>
       ) : (
         <button
           onClick={() => setIsCreatingList(true)}
-          className="bg-white/20 backdrop-blur-md rounded-xl p-4 w-64 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg w-64 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
         >
-          + Create New List
+          + Add List
         </button>
       )}
     </div>
