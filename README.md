@@ -131,14 +131,19 @@ try {
 
 ## 📸 Visual Progress
 
-You can include screenshots or recordings here to track how the app has evolved over time.
 
-To embed images in your `README.md`, use standard Markdown syntax:
+Main DashBoard Screenshot
 
-```md
-![TaskBoard Screenshot](images/taskboard-v1.png)
+<img width="1680" alt="Screenshot 2025-03-25 at 6 57 41 PM" src="https://github.com/user-attachments/assets/27a5a450-2b32-4396-a07b-526ea6536453" />
 
-```
+
+
+TaskBoard Screenshot
+
+<img width="1680" alt="Task Board" src="https://github.com/user-attachments/assets/f622b693-111c-480f-85c5-b843a8c6aa50" />
+
+
+
 ## 🛠️ Tech Stack
 
 ### 🧩 Frontend
