@@ -139,3 +139,33 @@ To embed images in your `README.md`, use standard Markdown syntax:
 ![TaskBoard Screenshot](images/taskboard-v1.png)
 
 
+## 🛠️ Tech Stack
+
+### 🧩 Frontend
+- **Next.js**
+- **React**
+- **TypeScript**
+- **TailwindCSS**
+- **Framer Motion** – Animations
+- **DND Kit** – Drag and Drop functionality
+- **Lucide React** – Icon library
+
+### 🛠️ Backend
+- **Next.js API Routes**
+- **Prisma** – ORM
+- **TypeScript**
+
+### ⚙️ Tooling & Infrastructure
+- **TypeScript**
+- **ESLint** – Linting
+- **PostCSS** + **Autoprefixer** – Styling tools
+- **Git**
+- **npm** – Package management
+
+## 🗣️ Final Thought
+
+This project is a simple experiment:
+
+Can we build real software just by speaking it into existence?
+
+So far, the answer feels like yes. 
