@@ -129,4 +129,13 @@ try {
 - Task deletes immediately on first attempt
 - No error toast unless there’s a real backend failure
 
+## 📸 Visual Progress
+
+You can include screenshots or recordings here to track how the app has evolved over time.
+
+To embed images in your `README.md`, use standard Markdown syntax:
+
+```md
+![TaskBoard Screenshot](images/taskboard-v1.png)
+
 
