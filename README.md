@@ -138,7 +138,7 @@ To embed images in your `README.md`, use standard Markdown syntax:
 ```md
 ![TaskBoard Screenshot](images/taskboard-v1.png)
 
-
+```
 ## 🛠️ Tech Stack
 
 ### 🧩 Frontend
