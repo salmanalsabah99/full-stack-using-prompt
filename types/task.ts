@@ -15,8 +15,7 @@ export interface Task {
 export interface TaskList {
   id: number;
   title: string;
-  row: number;
-  col: number;
+  order: number;
   tasks: Task[];
   createdAt: Date;
   updatedAt: Date;

@@ -37,11 +37,17 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE /api/task-lists - Delete a task list
+// DELETE /api/task-lists?id={id} - Delete a task list
 export async function DELETE(request: Request) {
   try {
-    const { id } = await request.json();
-    await deleteTaskList(id);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Task list ID is required' }, { status: 400 });
+    }
+
+    await deleteTaskList(parseInt(id));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting task list:', error);

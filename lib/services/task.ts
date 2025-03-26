@@ -86,15 +86,11 @@ export async function getTask(id: number) {
 }
 
 export async function deleteTask(id: number) {
-  try {
-    const deletedTask = await prisma.task.delete({
-      where: { id },
-    });
-    return deletedTask;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Record to delete does not exist')) {
-      throw new Error('Task not found');
-    }
-    throw error;
-  }
+  // Delete the task and return the deleted task data
+  return prisma.task.delete({
+    where: { id },
+    include: {
+      list: true,
+    },
+  });
 } 

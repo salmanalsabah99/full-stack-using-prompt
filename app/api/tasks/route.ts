@@ -47,7 +47,7 @@ export async function PATCH(request: Request) {
   }
 }
 
-// DELETE /api/tasks?id={id} - Delete a task
+// DELETE /api/tasks/:id - Delete a task
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -61,11 +61,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting task:', error);
-    if (error instanceof Error && error.message === 'Task not found') {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-    return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Failed to delete task' 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 });
   }
 } 
