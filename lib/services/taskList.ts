@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { CreateTaskListRequest, UpdateTaskListRequest, UpdateTaskListOrdersRequest } from '@/types/api';
-
-const prisma = new PrismaClient();
 
 export async function getAllTaskLists() {
   try {
+    console.log('Fetching all task lists...');
     const lists = await prisma.taskList.findMany({
       include: {
         tasks: {
@@ -19,15 +18,17 @@ export async function getAllTaskLists() {
         { order: 'asc' },
       ],
     });
+    console.log(`Found ${lists.length} task lists`);
     return lists;
   } catch (error) {
     console.error('Error in getAllTaskLists:', error);
-    throw error;
+    throw new Error('Failed to fetch task lists: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 
 export async function createTaskList(data: CreateTaskListRequest) {
   try {
+    console.log('Creating new task list:', data);
     // Get the maximum order value for the current row and column
     const maxOrder = await prisma.taskList.aggregate({
       where: {
@@ -39,7 +40,7 @@ export async function createTaskList(data: CreateTaskListRequest) {
       },
     });
 
-    return prisma.taskList.create({
+    const list = await prisma.taskList.create({
       data: {
         title: data.title,
         row: data.row,
@@ -50,15 +51,18 @@ export async function createTaskList(data: CreateTaskListRequest) {
         tasks: true,
       },
     });
+    console.log('Created new task list:', list);
+    return list;
   } catch (error) {
     console.error('Error in createTaskList:', error);
-    throw error;
+    throw new Error('Failed to create task list: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 
 export async function updateTaskList(data: UpdateTaskListRequest) {
   try {
-    return prisma.taskList.update({
+    console.log('Updating task list:', data);
+    const list = await prisma.taskList.update({
       where: { id: data.id },
       data: {
         title: data.title,
@@ -69,15 +73,18 @@ export async function updateTaskList(data: UpdateTaskListRequest) {
         tasks: true,
       },
     });
+    console.log('Updated task list:', list);
+    return list;
   } catch (error) {
     console.error('Error in updateTaskList:', error);
-    throw error;
+    throw new Error('Failed to update task list: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 
 export async function updateTaskListOrders(updates: UpdateTaskListOrdersRequest[]) {
   try {
-    return Promise.all(
+    console.log('Updating task list orders:', updates);
+    const lists = await Promise.all(
       updates.map((update) =>
         prisma.taskList.update({
           where: { id: update.id },
@@ -92,14 +99,17 @@ export async function updateTaskListOrders(updates: UpdateTaskListOrdersRequest[
         })
       )
     );
+    console.log('Updated task list orders:', lists);
+    return lists;
   } catch (error) {
     console.error('Error in updateTaskListOrders:', error);
-    throw error;
+    throw new Error('Failed to update task list orders: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 
 export async function deleteTaskList(id: number) {
   try {
+    console.log('Deleting task list:', id);
     // First check if the list exists
     const list = await prisma.taskList.findUnique({
       where: { id },
@@ -122,9 +132,10 @@ export async function deleteTaskList(id: number) {
       });
     });
 
+    console.log('Successfully deleted task list:', id);
     return true;
   } catch (error) {
     console.error('Error in deleteTaskList:', error);
-    throw error;
+    throw new Error('Failed to delete task list: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 } 

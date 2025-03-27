@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { CreateTaskRequest, UpdateTaskRequest, MoveTaskRequest, ReorderTasksRequest } from '@/types/api';
-
-const prisma = new PrismaClient();
 
 export async function getAllTasks() {
   return prisma.task.findMany({
@@ -50,11 +48,23 @@ export async function updateTask(data: UpdateTaskRequest) {
 }
 
 export async function moveTask(data: MoveTaskRequest) {
+  // First, get all tasks in the destination list
+  const destinationTasks = await prisma.task.findMany({
+    where: { listId: data.destinationListId },
+    orderBy: { order: 'asc' },
+  });
+
+  // Calculate the new order for the moved task
+  const newOrder = destinationTasks.length > 0
+    ? destinationTasks[Math.min(data.destinationIndex, destinationTasks.length - 1)].order + 1
+    : 0;
+
+  // Update the task's list and order
   return prisma.task.update({
     where: { id: data.taskId },
     data: {
-      listId: data.targetListId,
-      order: data.order,
+      listId: data.destinationListId,
+      order: newOrder,
     },
     include: {
       list: true,
@@ -62,12 +72,24 @@ export async function moveTask(data: MoveTaskRequest) {
   });
 }
 
-export async function reorderTasks(updates: ReorderTasksRequest[]) {
+export async function reorderTasks(data: ReorderTasksRequest) {
+  // Get all tasks in the list
+  const tasks = await prisma.task.findMany({
+    where: { listId: data.listId },
+    orderBy: { order: 'asc' },
+  });
+
+  // Create a new array with the reordered tasks
+  const reorderedTasks = [...tasks];
+  const [movedTask] = reorderedTasks.splice(data.startIndex, 1);
+  reorderedTasks.splice(data.endIndex, 0, movedTask);
+
+  // Update all tasks with their new orders
   return prisma.$transaction(
-    updates.map(({ id, order }) =>
+    reorderedTasks.map((task, index) =>
       prisma.task.update({
-        where: { id },
-        data: { order },
+        where: { id: task.id },
+        data: { order: index },
         include: {
           list: true,
         },
@@ -76,7 +98,7 @@ export async function reorderTasks(updates: ReorderTasksRequest[]) {
   );
 }
 
-export async function getTask(id: number) {
+export async function getTask(id: string) {
   return prisma.task.findUnique({
     where: { id },
     include: {
@@ -85,8 +107,7 @@ export async function getTask(id: number) {
   });
 }
 
-export async function deleteTask(id: number) {
-  // Delete the task and return the deleted task data
+export async function deleteTask(id: string) {
   return prisma.task.delete({
     where: { id },
     include: {

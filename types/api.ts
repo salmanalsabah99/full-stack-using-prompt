@@ -3,15 +3,11 @@ import { Task, TaskList } from './task';
 // Task List Types
 export interface CreateTaskListRequest {
   title: string;
-  row: number;
-  col: number;
 }
 
 export interface UpdateTaskListRequest {
-  id: number;
+  id: string;
   title: string;
-  row: number;
-  col: number;
 }
 
 export interface UpdateTaskListOrdersRequest {
@@ -24,25 +20,27 @@ export interface UpdateTaskListOrdersRequest {
 // Task Types
 export interface CreateTaskRequest {
   content: string;
-  listId: number;
+  listId: string;
 }
 
 export interface UpdateTaskRequest {
-  id: number;
+  id: string;
   content: string;
-  listId: number;
+  listId: string;
   order: number;
 }
 
 export interface MoveTaskRequest {
-  taskId: number;
-  targetListId: number;
-  order: number;
+  taskId: string;
+  sourceListId: string;
+  destinationListId: string;
+  destinationIndex: number;
 }
 
 export interface ReorderTasksRequest {
-  id: number;
-  order: number;
+  listId: string;
+  startIndex: number;
+  endIndex: number;
 }
 
 // API Response Types
@@ -53,20 +51,17 @@ export interface ApiResponse<T> {
 }
 
 export interface TaskListResponse {
-  id: number;
+  id: string;
   title: string;
-  row: number;
-  col: number;
-  order: number;
   tasks: TaskResponse[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface TaskResponse {
-  id: number;
+  id: string;
   content: string;
-  listId: number;
+  listId: string;
   order: number;
   createdAt: Date;
   updatedAt: Date;

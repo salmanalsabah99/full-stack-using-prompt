@@ -1,37 +1,12 @@
-export interface Position {
-  row: number;
-  col: number;
-}
-
 export interface Task {
-  id: number;
+  id: string;
   content: string;
-  listId: number;
+  listId: string;
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface TaskList {
-  id: number;
+  id: string;
   title: string;
-  order: number;
-  tasks: Task[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TaskReorderUpdate {
-  id: number;
-  order: number;
-}
-
-export interface TaskMoveUpdate {
-  taskId: number;
-  targetListId: number;
-  order: number;
-}
-
-export type TaskListWithTasks = TaskList & {
   tasks: Task[];
 } 
