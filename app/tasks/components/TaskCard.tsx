@@ -4,19 +4,19 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit2, Calendar, Flag } from 'lucide-react';
 import { Task } from '@/types/task';
 
 interface TaskCardProps {
   task: Task;
   index: number;
   onDelete: () => void;
-  onUpdate: (content: string) => void;
+  onUpdate: (title: string) => void;
 }
 
 export default function TaskCard({ task, index, onDelete, onUpdate }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [content, setContent] = useState(task.content);
+  const [title, setTitle] = useState(task.title);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +36,8 @@ export default function TaskCard({ task, index, onDelete, onUpdate }: TaskCardPr
   };
 
   const handleSubmit = () => {
-    if (content.trim()) {
-      onUpdate(content.trim());
+    if (title.trim()) {
+      onUpdate(title.trim());
       setIsEditing(false);
     }
   };
@@ -70,28 +70,51 @@ export default function TaskCard({ task, index, onDelete, onUpdate }: TaskCardPr
       {isEditing ? (
         <input
           type="text"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           onBlur={handleSubmit}
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           className="w-full bg-transparent border-none text-white focus:ring-2 focus:ring-sky-300/50 rounded px-2 py-1"
           autoFocus
         />
       ) : (
-        <div className="flex items-center justify-between">
-          <p
-            onClick={() => setIsEditing(true)}
-            className="text-white cursor-pointer hover:text-sky-300 transition flex-1"
-          >
-            {task.content}
-          </p>
-          <button
-            onClick={handleDelete}
-            className="text-white/50 hover:text-white/80 transition ml-2"
-            disabled={isSubmitting}
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p
+              onClick={() => setIsEditing(true)}
+              className="text-white cursor-pointer hover:text-sky-300 transition flex-1"
+            >
+              {task.title}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-white/50 hover:text-white/80 transition"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleDelete}
+                className="text-white/50 hover:text-white/80 transition"
+                disabled={isSubmitting}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          {task.description && (
+            <p className="text-sm text-white/70">{task.description}</p>
+          )}
+          <div className="flex items-center gap-3 text-sm text-white/50">
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Flag className="w-4 h-4" />
+              <span>{task.priority}</span>
+            </div>
+          </div>
         </div>
       )}
       {error && (

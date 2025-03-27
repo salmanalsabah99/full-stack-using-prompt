@@ -1,91 +1,200 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { TaskList as TaskListType, Task } from '@/types/task';
-import TaskCard from './TaskCard';
-import AddTask from './AddTask';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, ChevronDown, ChevronRight, Calendar, Flag } from 'lucide-react';
+import { Task } from '@/types/task';
 
 interface TaskListProps {
-  list: TaskListType;
-  index: number;
-  onTaskReorder: (listId: string, startIndex: number, endIndex: number) => void;
-  onTaskMove: (taskId: string, sourceListId: string, destinationListId: string, destinationIndex: number) => void;
-  onTaskDelete: (listId: string, taskId: string) => void;
-  onTaskUpdate: (listId: string, taskId: string, content: string) => void;
-  onListDelete: (listId: string) => void;
-  onListUpdate: (listId: string, title: string) => void;
-  onTaskAdd: (listId: string, content: string) => void;
+  title: string;
+  tasks: Task[];
+  accentColor: string;
+  bgTint: string;
+  onAddTask: (title: string, dueDate: Date) => void;
+  onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
+  onDeleteTask: (taskId: string) => void;
 }
 
-export default function TaskList({
-  list,
-  index,
-  onTaskReorder,
-  onTaskMove,
-  onTaskDelete,
-  onTaskUpdate,
-  onListDelete,
-  onListUpdate,
-  onTaskAdd,
-}: TaskListProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(list.title);
+export default function TaskList({ title, tasks, accentColor, bgTint, onAddTask, onUpdateTask, onDeleteTask }: TaskListProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
 
-  const handleTitleSubmit = () => {
-    if (title.trim()) {
-      onListUpdate(String(list.id), title.trim());
-      setIsEditing(false);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTaskTitle.trim()) {
+      const today = new Date();
+      let dueDate = new Date();
+
+      if (title === 'Tomorrow') {
+        dueDate.setDate(today.getDate() + 1);
+      } else if (title === 'Upcoming') {
+        dueDate.setDate(today.getDate() + 2);
+      }
+
+      onAddTask(newTaskTitle, dueDate);
+      setNewTaskTitle('');
+      setIsAdding(false);
     }
   };
 
   return (
     <motion.div
-      layout
-      className="flex flex-col h-full bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`bg-white rounded-lg shadow-sm mb-6 relative ${bgTint}`}
+      style={{ borderLeft: `4px solid ${accentColor}` }}
     >
-      <div className="flex items-center justify-between mb-4">
-        {isEditing ? (
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={handleTitleSubmit}
-            onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
-            className="w-full bg-transparent border-none text-white text-lg font-semibold focus:ring-2 focus:ring-sky-300/50 rounded px-2 py-1"
-            autoFocus
-          />
-        ) : (
-          <h3
-            onClick={() => setIsEditing(true)}
-            className="text-white text-lg font-semibold cursor-pointer hover:text-sky-300 transition"
-          >
-            {list.title}
-          </h3>
-        )}
+      {/* Header */}
+      <div 
+        className="p-4 flex items-center justify-between cursor-pointer"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <div className="flex items-center gap-2">
+          {isCollapsed ? (
+            <ChevronRight size={20} className="text-gray-400" />
+          ) : (
+            <ChevronDown size={20} className="text-gray-400" />
+          )}
+          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+        </div>
         <button
-          onClick={() => onListDelete(String(list.id))}
-          className="text-white/50 hover:text-white/80 transition"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsAdding(true);
+          }}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
         >
-          ×
+          <Plus size={20} className="text-gray-500" />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-2">
-        {list.tasks.map((task, taskIndex) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            index={taskIndex}
-            onDelete={() => onTaskDelete(String(list.id), String(task.id))}
-            onUpdate={(content) => onTaskUpdate(String(list.id), String(task.id), content)}
-          />
-        ))}
-      </div>
+      {/* Quick Add Form */}
+      <AnimatePresence>
+        {isAdding && (
+          <motion.form
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            onSubmit={handleSubmit}
+            className="px-4 pb-4"
+          >
+            <input
+              type="text"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Add a new task..."
+              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoFocus
+            />
+          </motion.form>
+        )}
+      </AnimatePresence>
 
-      <div className="mt-4">
-        <AddTask onAdd={(content) => onTaskAdd(String(list.id), content)} />
+      {/* Task List */}
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 pb-4"
+          >
+            {tasks.length === 0 ? (
+              <p className="text-gray-500 text-sm py-2">No tasks in this section</p>
+            ) : (
+              tasks.map((task) => (
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onUpdate={onUpdateTask}
+                  onDelete={onDeleteTask}
+                />
+              ))
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+interface TaskCardProps {
+  task: Task;
+  onUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onDelete: (taskId: string) => void;
+}
+
+const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="group relative bg-white rounded-lg p-3 mb-2 border border-gray-100 hover:border-gray-200 transition-colors"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-1">
+          <h3 className="text-sm font-medium text-gray-800">{task.title}</h3>
+          {task.description && (
+            <p className="text-sm text-gray-500 mt-1">{task.description}</p>
+          )}
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Calendar size={12} />
+              <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Flag size={12} className={`text-${task.priority.toLowerCase()}-500`} />
+              <span>{task.priority}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Hover Actions */}
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="flex items-center gap-1"
+            >
+              <button 
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdate(task.id, { completed: !task.completed });
+                }}
+              >
+                {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+              </button>
+              <button 
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdate(task.id, { priority: task.priority === 'HIGH' ? 'MEDIUM' : 'HIGH' });
+                }}
+              >
+                {task.priority === 'HIGH' ? 'Mark as Medium Priority' : 'Mark as High Priority'}
+              </button>
+              <button 
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(task.id);
+                }}
+              >
+                Delete
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
-} 
+}; 

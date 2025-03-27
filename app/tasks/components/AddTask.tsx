@@ -4,17 +4,18 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface AddTaskProps {
-  onAdd: (content: string) => void;
+  listId: string;
+  onAdd: (listId: string, title: string) => void;
 }
 
-export default function AddTask({ onAdd }: AddTaskProps) {
-  const [content, setContent] = useState('');
+export default function AddTask({ listId, onAdd }: AddTaskProps) {
+  const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSubmit = () => {
-    if (content.trim()) {
-      onAdd(content.trim());
-      setContent('');
+    if (title.trim()) {
+      onAdd(listId, title.trim());
+      setTitle('');
       setIsEditing(false);
     }
   };
@@ -27,8 +28,8 @@ export default function AddTask({ onAdd }: AddTaskProps) {
       {isEditing ? (
         <input
           type="text"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           onBlur={handleSubmit}
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           placeholder="Add a new task..."

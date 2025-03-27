@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Plus, X } from 'lucide-react';
 
 interface AddListProps {
   onListAdd: (title: string) => void;
+  onCancel: () => void;
 }
 
-export default function AddList({ onListAdd }: AddListProps) {
+export default function AddList({ onListAdd, onCancel }: AddListProps) {
   const [title, setTitle] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
 
   const handleSubmit = () => {
     if (title.trim()) {
@@ -21,28 +23,29 @@ export default function AddList({ onListAdd }: AddListProps) {
 
   return (
     <motion.div
-      layout
-      className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-4 hover:border-sky-300 hover:shadow-[0_0_8px_2px_rgba(125,211,252,0.2)] transition"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="bg-white rounded-lg shadow-sm mb-6 p-4 border border-gray-200"
     >
-      {isEditing ? (
+      <div className="flex items-center gap-2">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleSubmit}
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          placeholder="Add a new list..."
-          className="w-full bg-transparent border-none text-white text-lg font-semibold placeholder-white/50 focus:ring-2 focus:ring-sky-300/50 rounded px-2 py-1"
+          placeholder="Enter list name..."
+          className="flex-1 bg-transparent border-none text-gray-900 text-lg font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
           autoFocus
         />
-      ) : (
         <button
-          onClick={() => setIsEditing(true)}
-          className="w-full text-white/50 hover:text-white/80 transition text-left text-lg font-semibold"
+          onClick={onCancel}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
         >
-          + Add a new list...
+          <X size={20} className="text-gray-500" />
         </button>
-      )}
+      </div>
     </motion.div>
   );
 } 
