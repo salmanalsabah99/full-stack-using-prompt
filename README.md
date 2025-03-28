@@ -132,20 +132,9 @@ try {
 ## 📸 Visual Progress
 
 
-Main DashBoard Screenshot
-
-![Main Dashboard](https://github.com/user-attachments/assets/4818984e-7a3d-43fd-9845-3488c4f54c08)
+https://github.com/user-attachments/assets/35fb75b2-7ce2-4bc3-b1ac-1d3aaa5672c3
 
 
-
-TaskBoard Screenshot
-
-![Taskpage](https://github.com/user-attachments/assets/6077a05a-93a3-4eb9-a950-34e8c1d74ddc)
-
-
-Calendar Screenshot
-
-![Calendar](https://github.com/user-attachments/assets/5366499e-a25d-4dd0-81a3-a691678aff8d)
 
 
 ## 🛠️ Tech Stack
