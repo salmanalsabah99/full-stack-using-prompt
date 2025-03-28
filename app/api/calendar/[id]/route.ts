@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withApiHandler, withValidation, createErrorResponse } from '@/lib/api-utils';
+import { validateCalendarEntry } from '@/lib/validation';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
+// DELETE /api/calendar/[id] - Delete a calendar event
+export const DELETE = withApiHandler(
+  async (request: NextRequest, { params }: { params: { id: string } }) => {
     const id = parseInt(params.id);
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: 'Invalid event ID' },
-        { status: 400 }
-      );
+      return createErrorResponse('Invalid event ID', 400);
     }
 
     // First check if the event exists
@@ -20,10 +17,7 @@ export async function DELETE(
     });
 
     if (!existingEvent) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      );
+      return createErrorResponse('Event not found', 404);
     }
 
     // Delete the event
@@ -31,54 +25,33 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ success: true, id });
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete event' },
-      { status: 500 }
-    );
-  }
-}
+    return { success: true, id };
+  },
+  'delete calendar event'
+);
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
+// PUT /api/calendar/[id] - Update a calendar event
+export const PUT = withApiHandler(
+  async (request: NextRequest, { params }: { params: { id: string } }) => {
     const id = parseInt(params.id);
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: 'Invalid event ID' },
-        { status: 400 }
-      );
+      return createErrorResponse('Invalid event ID', 400);
     }
 
-    const body = await request.json();
-    const { title, date, notes } = body;
-
-    if (!title) {
-      return NextResponse.json(
-        { error: 'Title is required' },
-        { status: 400 }
-      );
-    }
-
-    const event = await prisma.calendarEntry.update({
-      where: { id },
-      data: {
-        title,
-        date: new Date(date),
-        notes,
-      },
+    const data = await request.json();
+    
+    return withValidation(data, validateCalendarEntry, async (validatedData) => {
+      const { title, date, notes } = validatedData;
+      
+      return prisma.calendarEntry.update({
+        where: { id },
+        data: {
+          title,
+          date: new Date(date),
+          notes,
+        },
+      });
     });
-
-    return NextResponse.json(event);
-  } catch (error) {
-    console.error('Error updating event:', error);
-    return NextResponse.json(
-      { error: 'Failed to update event' },
-      { status: 500 }
-    );
-  }
-} 
+  },
+  'update calendar event'
+); 
