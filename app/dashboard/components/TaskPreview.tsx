@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 
 const mockTasks = [
   { title: 'Finish quarterly report', priority: 'High' },
-  { title: 'Call Sarah', priority: 'High' },
   { title: 'Plan next sprint', priority: 'Medium' }
 ];
 

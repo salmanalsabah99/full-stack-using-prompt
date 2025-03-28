@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
+import { inputStyles, buttonStyles } from '../utils/styles';
 
 interface AddTaskProps {
   listId: string;
@@ -33,15 +35,16 @@ export default function AddTask({ listId, onAdd }: AddTaskProps) {
           onBlur={handleSubmit}
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           placeholder="Add a new task..."
-          className="w-full bg-transparent border-none text-white placeholder-white/50 focus:ring-2 focus:ring-sky-300/50 rounded px-2 py-1"
+          className={`${inputStyles} bg-transparent border-white/10 text-white placeholder-white/50 focus:ring-sky-300/50`}
           autoFocus
         />
       ) : (
         <button
           onClick={() => setIsEditing(true)}
-          className="w-full text-white/50 hover:text-white/80 transition text-left"
+          className={`${buttonStyles.secondary} w-full text-white/50 hover:text-white/80 transition text-left flex items-center gap-2`}
         >
-          + Add a new task...
+          <Plus size={16} />
+          Add a new task...
         </button>
       )}
     </motion.div>

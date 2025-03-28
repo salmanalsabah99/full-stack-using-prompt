@@ -52,10 +52,10 @@ export function useTaskLists() {
 
   const handleTaskMove = async (taskId: string, sourceListId: string, destinationListId: string, destinationIndex: number) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/move`, {
+      const response = await fetch(`/api/tasks/move`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceListId, destinationListId, destinationIndex }),
+        body: JSON.stringify({ taskId, targetListId: destinationListId, order: destinationIndex }),
       });
       if (!response.ok) throw new Error('Failed to move task');
       
@@ -105,12 +105,12 @@ export function useTaskLists() {
     }
   };
 
-  const handleTaskUpdate = async (listId: string, taskId: string, content: string) => {
+  const handleTaskUpdate = async (listId: string, taskId: string, updates: Partial<Task>) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(updates),
       });
       if (!response.ok) throw new Error('Failed to update task');
       
@@ -120,7 +120,7 @@ export function useTaskLists() {
             ? {
                 ...list,
                 tasks: list.tasks.map(task =>
-                  task.id === taskId ? { ...task, content } : task
+                  task.id === taskId ? { ...task, ...updates } : task
                 )
               }
             : list
@@ -166,12 +166,19 @@ export function useTaskLists() {
     }
   };
 
-  const handleTaskAdd = async (listId: string, content: string) => {
+  const handleTaskAdd = async (listId: string, title: string, dueDate: Date, priority: 'LOW' | 'MEDIUM' | 'HIGH' = 'MEDIUM') => {
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listId, content }),
+        body: JSON.stringify({ 
+          title,
+          dueDate,
+          listId,
+          priority,
+          completed: false,
+          order: 0
+        }),
       });
       if (!response.ok) throw new Error('Failed to add task');
       const newTask = await response.json();

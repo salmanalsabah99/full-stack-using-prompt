@@ -2,22 +2,22 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, X } from 'lucide-react';
+import { inputStyles, buttonStyles } from '../utils/styles';
 
 interface AddListProps {
   onListAdd: (title: string) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export default function AddList({ onListAdd, onCancel }: AddListProps) {
   const [title, setTitle] = useState('');
-  const [isEditing, setIsEditing] = useState(true);
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (title.trim()) {
       onListAdd(title.trim());
       setTitle('');
-      setIsEditing(false);
+      onCancel?.();
     }
   };
 
@@ -26,26 +26,31 @@ export default function AddList({ onListAdd, onCancel }: AddListProps) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="bg-white rounded-lg shadow-sm mb-6 p-4 border border-gray-200"
+      className="mb-6"
     >
-      <div className="flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onBlur={handleSubmit}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          placeholder="Enter list name..."
-          className="flex-1 bg-transparent border-none text-gray-900 text-lg font-semibold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+          placeholder="List name..."
+          className={inputStyles}
           autoFocus
         />
         <button
-          onClick={onCancel}
-          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          type="submit"
+          className={buttonStyles.primary}
         >
-          <X size={20} className="text-gray-500" />
+          Add
         </button>
-      </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className={buttonStyles.secondary}
+        >
+          Cancel
+        </button>
+      </form>
     </motion.div>
   );
 } 

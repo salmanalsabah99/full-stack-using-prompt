@@ -1,20 +1,40 @@
 import { NextResponse } from 'next/server';
-import * as taskService from '@/lib/services/task';
-import { ReorderTasksRequest } from '@/types/api';
+import { prisma } from '@/lib/prisma';
+import { withApiHandler, withValidation } from '@/lib/api-utils';
+import { validateTaskReorderData } from '@/lib/validation';
+
+interface TaskReorderData {
+  listId: string;
+  tasks: Array<{
+    id: string;
+    order: number;
+  }>;
+}
 
 // PUT /api/tasks/reorder - Reorder tasks within a list
-export async function PUT(request: Request) {
-  try {
-    const updates: ReorderTasksRequest[] = await request.json();
+export const PUT = withApiHandler(
+  async (request: Request) => {
+    const data = await request.json() as TaskReorderData;
+    
+    return withValidation(data, validateTaskReorderData, async (validatedData) => {
+      const { listId, tasks } = validatedData;
 
-    if (!Array.isArray(updates) || updates.length === 0) {
-      return NextResponse.json({ error: 'Invalid updates array' }, { status: 400 });
-    }
+      // Update the order of each task
+      await Promise.all(
+        tasks.map(({ id, order }) =>
+          prisma.task.update({
+            where: { id },
+            data: { order },
+          })
+        )
+      );
 
-    const tasks = await taskService.reorderTasks(updates);
-    return NextResponse.json(tasks);
-  } catch (error) {
-    console.error('Error reordering tasks:', error);
-    return NextResponse.json({ error: 'Failed to reorder tasks' }, { status: 500 });
-  }
-} 
+      // Fetch the updated tasks
+      return prisma.task.findMany({
+        where: { listId },
+        orderBy: { order: 'asc' },
+      });
+    });
+  },
+  'reorder tasks'
+); 
