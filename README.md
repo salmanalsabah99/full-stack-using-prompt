@@ -28,16 +28,22 @@ This becomes the blueprint. No boilerplate, no typing — just **thought → ins
 
 ---
 
-## 📌 Current Focus: The Helper App
+## 📌 Current Focus: Leo (Second Brain)
 
-We're building a **Notion-style productivity tool**, with four main components:
+Leo isn’t a fixed product. It’s a space to:
+- Stay productive 
+- Keep things in flow 
+- Track thoughts, tasks, and time 
+- Evolve based on whatever I need — or feel like experimenting with
 
-- ✅ **TaskBoard** – Kanban-style layout  
-- 📅 **Calendar**  
-- 📝 **Notes**  
-- 🧲 **Priority Orbit** – A visual prioritization UI  
+Sometimes it’s about refining a feature. 
+Other times it’s about testing strange combinations, mixing concepts, and seeing what happens.
 
-Every piece is created **only through prompts** — and every prompt is generated from speech.
+The backend is still changing — I’m tweaking functionality, debugging as I go, and refining the logic one step at a time.
+
+There’s no roadmap — just exploration, iteration, and fun.
+
+Eventually, Leo will include an AI component — but what it *does* will depend entirely on the structure and data we build along the way.
 
 ---
 
@@ -132,20 +138,9 @@ try {
 ## 📸 Visual Progress
 
 
-Main DashBoard Screenshot
-
-![Main Dashboard](https://github.com/user-attachments/assets/4818984e-7a3d-43fd-9845-3488c4f54c08)
+https://github.com/user-attachments/assets/35fb75b2-7ce2-4bc3-b1ac-1d3aaa5672c3
 
 
-
-TaskBoard Screenshot
-
-![Taskpage](https://github.com/user-attachments/assets/6077a05a-93a3-4eb9-a950-34e8c1d74ddc)
-
-
-Calendar Screenshot
-
-![Calendar](https://github.com/user-attachments/assets/5366499e-a25d-4dd0-81a3-a691678aff8d)
 
 
 ## 🛠️ Tech Stack
