@@ -28,16 +28,22 @@ This becomes the blueprint. No boilerplate, no typing — just **thought → ins
 
 ---
 
-## 📌 Current Focus: The Helper App
+## 📌 Current Focus: Leo (Second Brain)
 
-We're building a **Notion-style productivity tool**, with four main components:
+Leo isn’t a fixed product. It’s a space to:
+- Stay productive 
+- Keep things in flow 
+- Track thoughts, tasks, and time 
+- Evolve based on whatever I need — or feel like experimenting with
 
-- ✅ **TaskBoard** – Kanban-style layout  
-- 📅 **Calendar**  
-- 📝 **Notes**  
-- 🧲 **Priority Orbit** – A visual prioritization UI  
+Sometimes it’s about refining a feature. 
+Other times it’s about testing strange combinations, mixing concepts, and seeing what happens.
 
-Every piece is created **only through prompts** — and every prompt is generated from speech.
+The backend is still changing — I’m tweaking functionality, debugging as I go, and refining the logic one step at a time.
+
+There’s no roadmap — just exploration, iteration, and fun.
+
+Eventually, Leo will include an AI component — but what it *does* will depend entirely on the structure and data we build along the way.
 
 ---
 
