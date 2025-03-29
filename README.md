@@ -124,6 +124,7 @@ Use this prompt format when building new features, fixing bugs, or doing anythin
    Example:  
    ```ts title=components/TaskList.tsx
    // Updated logic here
+    ```
 
 11. **Style and UX Notes**  
     Follow the design system:  
