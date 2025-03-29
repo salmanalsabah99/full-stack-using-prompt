@@ -122,9 +122,10 @@ Use this prompt format when building new features, fixing bugs, or doing anythin
    Use Markdown code blocks with filenames labeled.  
    Only include changed or new files.  
    Example:  
-   ```ts title=components/TaskList.tsx
+
+   ts title=components/TaskList.tsx
    // Updated logic here
-    ```
+
 
 11. **Style and UX Notes**  
     Follow the design system:  
