@@ -119,13 +119,13 @@ Use this prompt format when building new features, fixing bugs, or doing anythin
    Add logic to the right place.
 
 10. **Output Format**  
-   Use Markdown code blocks with filenames labeled.  
-   Only include changed or new files.  
-   Example:  
-
-   ts title=components/TaskList.tsx
-   // Updated logic here
-
+    Use Markdown code blocks with the filename shown above the block.  
+    Only include changed or new files.  
+    Example:  
+    **File:** `components/TaskList.tsx`
+    ```ts
+    // Updated logic here
+    ```
 
 11. **Style and UX Notes**  
     Follow the design system:  
