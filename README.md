@@ -143,7 +143,6 @@ Use this prompt format when building new features, fixing bugs, or doing anythin
     - Prioritize long-term maintainability, clarity, and clean abstraction over fast or dirty solutions
 
 
---
 ## 📸 Visual Progress
 
 
