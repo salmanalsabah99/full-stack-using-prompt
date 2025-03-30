@@ -1,5 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Event, Task, CalendarItem } from '../types';
+import { Priority } from '@/types/shared';
+
+const mapEventToCalendarItem = (event: Event): CalendarItem => ({
+  id: event.id,
+  title: event.title,
+  date: event.date,
+  type: 'event' as const,
+  notes: event.notes,
+  eventType: event.type
+});
+
+const mapTaskToCalendarItem = (task: Task): CalendarItem => ({
+  id: task.id,
+  title: task.title,
+  date: task.dueDate,
+  type: 'task' as const,
+  notes: task.description,
+  priority: task.priority.toLowerCase() as Priority,
+  completed: task.completed
+});
+
+const handleApiError = (error: unknown, message: string): never => {
+  throw new Error(error instanceof Error ? error.message : message);
+};
 
 export function useCalendar() {
   const [items, setItems] = useState<CalendarItem[]>([]);
@@ -25,28 +49,10 @@ export function useCalendar() {
       const events: Event[] = await eventsRes.json();
       const tasks: Task[] = await tasksRes.json();
 
-      // Convert events and tasks to calendar items
-      const calendarItems: CalendarItem[] = [
-        ...events.map(event => ({
-          id: event.id,
-          title: event.title,
-          date: event.date,
-          type: 'event' as const,
-          notes: event.notes,
-          eventType: event.type
-        })),
-        ...tasks.map(task => ({
-          id: task.id,
-          title: task.title,
-          date: task.dueDate,
-          type: 'task' as const,
-          notes: task.description,
-          priority: task.priority,
-          completed: task.completed
-        }))
-      ];
-
-      setItems(calendarItems);
+      setItems([
+        ...events.map(mapEventToCalendarItem),
+        ...tasks.map(mapTaskToCalendarItem)
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch calendar data');
     } finally {
@@ -67,15 +73,9 @@ export function useCalendar() {
       }
 
       const newEvent = await response.json();
-      setItems(prev => [...prev, {
-        id: newEvent.id,
-        title: newEvent.title,
-        date: newEvent.date,
-        type: 'event',
-        notes: newEvent.notes
-      }]);
+      setItems(prev => [...prev, mapEventToCalendarItem(newEvent)]);
     } catch (err) {
-      throw err;
+      handleApiError(err, 'Failed to add event');
     }
   };
 
@@ -94,16 +94,11 @@ export function useCalendar() {
       const updatedEvent = await response.json();
       setItems(prev => prev.map(item => 
         item.id === id && item.type === 'event'
-          ? {
-              ...item,
-              title: updatedEvent.title,
-              date: updatedEvent.date,
-              notes: updatedEvent.notes
-            }
+          ? mapEventToCalendarItem(updatedEvent)
           : item
       ));
     } catch (err) {
-      throw err;
+      handleApiError(err, 'Failed to update event');
     }
   };
 
@@ -119,7 +114,7 @@ export function useCalendar() {
 
       setItems(prev => prev.filter(item => !(item.id === id && item.type === 'event')));
     } catch (err) {
-      throw err;
+      handleApiError(err, 'Failed to delete event');
     }
   };
 
@@ -144,7 +139,30 @@ export function useCalendar() {
           : item
       ));
     } catch (err) {
-      throw err;
+      handleApiError(err, 'Failed to update task');
+    }
+  };
+
+  const updateTask = async (id: number, title: string, date: Date, notes?: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, dueDate: date, description: notes }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update task');
+      }
+
+      const updatedTask = await response.json();
+      setItems(prev => prev.map(item => 
+        item.id === id && item.type === 'task'
+          ? mapTaskToCalendarItem(updatedTask)
+          : item
+      ));
+    } catch (err) {
+      handleApiError(err, 'Failed to update task');
     }
   };
 
@@ -156,6 +174,6 @@ export function useCalendar() {
     updateEvent,
     deleteEvent,
     toggleTaskCompletion,
-    refresh: fetchItems
+    updateTask
   };
 } 

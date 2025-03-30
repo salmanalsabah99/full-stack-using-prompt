@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Task } from '@/types/task';
-import TaskCard from './TaskCard';
+import { PriorityUppercase } from '@/types/shared';
+import { TaskCard } from './TaskCard';
 import { inputStyles, buttonStyles } from '../utils/styles';
+import { useLoadingState } from '@/lib/hooks/use-loading-state';
+import { usePagination } from '@/lib/hooks/use-pagination';
+import { useInfiniteScroll } from '@/lib/hooks/use-infinite-scroll';
+import { useDebounce } from '@/lib/hooks/use-debounce';
+import { useThrottle } from '@/lib/hooks/use-throttle';
 
 interface TaskListProps {
   id: string;
@@ -14,7 +20,7 @@ interface TaskListProps {
   tasks: Task[];
   accentColor: string;
   bgTint: string;
-  onAddTask: (listId: string, title: string, dueDate: Date, priority: 'LOW' | 'MEDIUM' | 'HIGH') => void;
+  onAddTask: (listId: string, title: string, dueDate: Date, priority: PriorityUppercase) => void;
   onUpdateTask: (listId: string, taskId: string, updates: Partial<Task>) => void;
   onDeleteTask: (listId: string, taskId: string) => void;
   onDeleteList: (listId: string) => void;
@@ -26,6 +32,10 @@ interface TaskListProps {
     destinationIndex: number
   ) => void;
   onUpdateList: (listId: string, title: string) => void;
+  onUpdate: (task: Task) => Promise<void>;
+  onDelete: (id: number | string) => Promise<void>;
+  onLoadMore?: () => Promise<void>;
+  hasMore?: boolean;
 }
 
 const TaskList = ({ 
@@ -40,8 +50,26 @@ const TaskList = ({
   onDeleteList,
   onReorderTasks,
   onMoveTask,
-  onUpdateList
+  onUpdateList,
+  onUpdate,
+  onDelete,
+  onLoadMore,
+  hasMore
 }: TaskListProps) => {
+  const { state, withLoading } = useLoadingState();
+  const { page, setPage, limit, total } = usePagination({
+    initialPage: 1,
+    initialLimit: 10
+  });
+  const { items, state: scrollState, loadingRef, reset } = useInfiniteScroll<Task>({
+    loadMore: async (page) => {
+      if (onLoadMore) {
+        await onLoadMore();
+      }
+      return [];
+    },
+    threshold: 0.5
+  });
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -50,6 +78,13 @@ const TaskList = ({
   const [newTaskPriority, setNewTaskPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH'>('MEDIUM');
   const [newTaskDueDate, setNewTaskDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [isHovered, setIsHovered] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, { delay: 300 });
+  const throttledScroll = useThrottle(() => {
+    if (onLoadMore) {
+      onLoadMore();
+    }
+  }, { delay: 500 });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +95,39 @@ const TaskList = ({
       setNewTaskDueDate(new Date().toISOString().split('T')[0]);
       setIsAdding(false);
     }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (hasMore && scrollState !== 'loading' && onLoadMore) {
+        throttledScroll();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, scrollState, throttledScroll, onLoadMore]);
+
+  const filteredTasks = tasks.filter(task =>
+    task.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+    task.description?.toLowerCase().includes(debouncedSearch.toLowerCase())
+  );
+
+  const paginatedTasks = filteredTasks.slice(
+    (page - 1) * limit,
+    page * limit
+  );
+
+  const handleUpdate = async (task: Task) => {
+    await withLoading(async () => {
+      await onUpdate(task);
+    });
+  };
+
+  const handleDelete = async (id: number | string) => {
+    await withLoading(async () => {
+      await onDelete(id);
+    });
   };
 
   return (
@@ -213,6 +281,15 @@ const TaskList = ({
             exit={{ opacity: 0, height: 0 }}
             className="px-4 pb-4"
           >
+            <div className="flex items-center gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
             <Droppable droppableId={id}>
               {(provided) => (
                 <div
@@ -220,10 +297,10 @@ const TaskList = ({
                   ref={provided.innerRef}
                   className="space-y-2"
                 >
-                  {tasks.length === 0 ? (
+                  {paginatedTasks.length === 0 ? (
                     <p className="text-gray-500 text-sm py-2">No tasks in this section</p>
                   ) : (
-                    tasks.map((task, index) => (
+                    paginatedTasks.map((task, index) => (
                       <Draggable
                         key={task.id}
                         draggableId={task.id}
@@ -238,8 +315,8 @@ const TaskList = ({
                           >
                             <TaskCard
                               task={task}
-                              onUpdate={(taskId, updates) => onUpdateTask(id, taskId, updates)}
-                              onDelete={(taskId) => onDeleteTask(id, taskId)}
+                              onUpdate={handleUpdate}
+                              onDelete={handleDelete}
                             />
                           </div>
                         )}
@@ -253,6 +330,18 @@ const TaskList = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div ref={loadingRef} className="flex justify-center py-4">
+        {scrollState === 'loading' && (
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        )}
+      </div>
+
+      {state === 'loading' && (
+        <div className="flex justify-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        </div>
+      )}
     </motion.div>
   );
 };

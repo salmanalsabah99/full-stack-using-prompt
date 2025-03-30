@@ -1,30 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import EventPreview from './EventPreview';
 import TaskPreview from './TaskPreview';
-import NotesPreview from './NotesPreview';
+import EventPreview from './EventPreview';
 import DashboardHeader from './DashboardHeader';
 
 export default function TodayView() {
+  const [selectedDate] = useState(new Date());
+
   return (
-    <div className="min-h-screen bg-[#F7F7F7] py-8 px-4 md:px-8">
-      <div className="max-w-[1100px] mx-auto">
-        {/* Header Greeting */}
-        <DashboardHeader />
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Today's Events */}
-          <EventPreview />
-
-          {/* Today's Tasks */}
+    <div className="p-6">
+      <DashboardHeader title="Today's Overview" />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {/* Tasks Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <TaskPreview />
+        </motion.div>
 
-          {/* Notes Preview */}
-          <NotesPreview />
-        </div>
+        {/* Events Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <EventPreview />
+        </motion.div>
       </div>
     </div>
   );

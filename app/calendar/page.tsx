@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { format, addDays, startOfWeek, isToday, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import { useCalendar } from './hooks/useCalendar';
+import { useCalendarNavigation } from './hooks/useCalendarNavigation';
+import { useCalendarModals } from './hooks/useCalendarModals';
 import AddEventModal from './components/AddEventModal';
 import WeeklyCalendar from './components/WeeklyCalendar';
 import { CalendarItem } from './types';
@@ -18,19 +19,28 @@ export default function CalendarPage() {
     updateEvent,
     deleteEvent,
     toggleTaskCompletion,
-    refresh
+    updateTask
   } = useCalendar();
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<CalendarItem | null>(null);
+  const {
+    selectedDate,
+    handlePreviousWeek,
+    handleNextWeek,
+    handleToday
+  } = useCalendarNavigation();
+
+  const {
+    isAddModalOpen,
+    editingItem,
+    handleOpenAddModal,
+    handleCloseAddModal,
+    handleOpenEditModal,
+    handleCloseEditModal
+  } = useCalendarModals();
 
   const handleAddEvent = async (title: string, date: Date, notes?: string) => {
     await addEvent(title, date, notes);
-  };
-
-  const handleEditEvent = (item: CalendarItem) => {
-    setEditingItem(item);
+    handleCloseAddModal();
   };
 
   const handleDeleteEvent = async (id: number) => {
@@ -41,25 +51,16 @@ export default function CalendarPage() {
     await toggleTaskCompletion(id);
   };
 
-  const handlePreviousWeek = () => {
-    setSelectedDate(prev => addDays(prev, -7));
-  };
+  const handleUpdateItem = async (title: string, date: Date, notes?: string) => {
+    if (!editingItem) return;
 
-  const handleNextWeek = () => {
-    setSelectedDate(prev => addDays(prev, 7));
+    if (editingItem.type === 'event') {
+      await updateEvent(Number(editingItem.id), title, date, notes);
+    } else {
+      await updateTask(Number(editingItem.id), title, date, notes);
+    }
+    handleCloseEditModal();
   };
-
-  const handleToday = () => {
-    setSelectedDate(new Date());
-  };
-
-  const getWeekDates = () => {
-    const start = startOfWeek(selectedDate, { weekStartsOn: 0 });
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  };
-
-  const weekDates = getWeekDates();
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   if (loading) {
     return (
@@ -78,9 +79,9 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden">
+    <div className="h-full w-full flex flex-col">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex-none flex items-center justify-between p-4 border-b bg-white">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-semibold text-gray-900">
             {format(selectedDate, 'MMMM yyyy')}
@@ -107,7 +108,7 @@ export default function CalendarPage() {
           </div>
         </div>
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleOpenAddModal}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
         >
           <Plus size={16} />
@@ -116,13 +117,12 @@ export default function CalendarPage() {
       </div>
 
       {/* Calendar View */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 p-4">
         <WeeklyCalendar
-          weekDays={weekDays}
-          weekDates={weekDates}
+          selectedDate={selectedDate}
           items={items}
           onAddEvent={handleAddEvent}
-          onEditEvent={handleEditEvent}
+          onEditEvent={handleOpenEditModal}
           onDeleteEvent={handleDeleteEvent}
           onToggleTask={handleToggleTask}
         />
@@ -131,7 +131,7 @@ export default function CalendarPage() {
       {/* Add Event Modal */}
       <AddEventModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={handleCloseAddModal}
         onSubmit={handleAddEvent}
       />
 
@@ -140,14 +140,12 @@ export default function CalendarPage() {
         {editingItem && (
           <AddEventModal
             isOpen={true}
-            onClose={() => setEditingItem(null)}
-            onSubmit={async (title, date, notes) => {
-              await updateEvent(editingItem.id, title, date, notes);
-              setEditingItem(null);
-            }}
+            onClose={handleCloseEditModal}
+            onSubmit={handleUpdateItem}
             defaultDate={new Date(editingItem.date)}
             defaultTitle={editingItem.title}
             defaultNotes={editingItem.notes}
+            item={editingItem}
           />
         )}
       </AnimatePresence>

@@ -1,26 +1,24 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { format } from 'date-fns';
 import { CalendarItem } from '../types';
 import EventCard from './EventCard';
+import { getLocalNow, ensureLocal, isSameDay } from '@/lib/date-utils';
 
 interface DayColumnProps {
   day: string;
   date: Date;
   items: CalendarItem[];
-  isToday: boolean;
+  isToday?: boolean;
   onAddEvent: (title: string, date: Date) => Promise<void>;
   onEditEvent: (item: CalendarItem) => void;
   onDeleteEvent: (id: number) => void;
-  onToggleTask?: (id: number) => void;
+  onToggleTask: (id: number) => Promise<void>;
 }
 
 export default function DayColumn({
-  day,
   date,
   items,
-  isToday,
   onAddEvent,
   onEditEvent,
   onDeleteEvent,
@@ -40,9 +38,9 @@ export default function DayColumn({
     }
 
     try {
-      // Set time to current time but keep the selected date
-      const eventDate = new Date(date);
-      eventDate.setHours(new Date().getHours(), new Date().getMinutes());
+      const eventDate = ensureLocal(new Date(date));
+      const now = getLocalNow();
+      eventDate.setHours(now.getHours(), now.getMinutes());
       
       await onAddEvent(newEventTitle, eventDate);
       setNewEventTitle('');
@@ -54,41 +52,15 @@ export default function DayColumn({
 
   // Filter items for this day
   const dayItems = items.filter(item => {
-    try {
-      const itemDate = new Date(item.date);
-      // Set time to midnight for comparison
-      itemDate.setHours(0, 0, 0, 0);
-      const columnDate = new Date(date);
-      columnDate.setHours(0, 0, 0, 0);
-      return itemDate.getTime() === columnDate.getTime();
-    } catch (err) {
-      console.error('Error parsing item date:', err);
-      return false;
-    }
-  });
-
-  // Sort items by time
-  dayItems.sort((a, b) => {
-    const timeA = new Date(a.date).getTime();
-    const timeB = new Date(b.date).getTime();
-    return timeA - timeB;
+    const itemDate = ensureLocal(new Date(item.date));
+    const columnDate = ensureLocal(new Date(date));
+    return isSameDay(itemDate, columnDate);
   });
 
   return (
-    <div className="flex flex-col h-full min-w-0 bg-white">
-      {/* Day Header */}
-      <div className={`p-2 text-center border-b ${isToday ? 'bg-blue-50' : ''}`}>
-        <div className={`text-sm font-medium ${isToday ? 'text-blue-600' : 'text-gray-600'}`}>
-          {day}
-        </div>
-        <div className={`text-xs ${isToday ? 'text-blue-600' : 'text-gray-400'}`}>
-          {format(date, 'MMM d')}
-        </div>
-      </div>
-
+    <div className="h-full flex flex-col min-w-0">
       {/* Items Container */}
       <div className="flex-1 p-2 overflow-y-auto">
-        {/* Quick Add Form */}
         <AnimatePresence>
           {isAdding && (
             <motion.form
@@ -113,11 +85,10 @@ export default function DayColumn({
           )}
         </AnimatePresence>
 
-        {/* Items List */}
-        <div className="space-y-2">
+        <div className="space-y-2 min-w-0">
           {dayItems.map((item) => (
-            <EventCard 
-              key={item.id} 
+            <EventCard
+              key={item.id}
               item={item}
               onEdit={onEditEvent}
               onDelete={onDeleteEvent}
@@ -128,12 +99,15 @@ export default function DayColumn({
       </div>
 
       {/* Quick Add Button */}
-      <button
-        onClick={() => setIsAdding(true)}
-        className="absolute bottom-2 right-2 p-1 hover:bg-gray-100 rounded-full transition-colors"
-      >
-        <Plus size={16} className="text-gray-500" />
-      </button>
+      <div className="flex justify-center p-2 border-t">
+        <button
+          onClick={() => setIsAdding(true)}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          title="Add event"
+        >
+          <Plus size={16} className="text-gray-500" />
+        </button>
+      </div>
     </div>
   );
 } 

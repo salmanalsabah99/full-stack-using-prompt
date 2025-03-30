@@ -6,13 +6,12 @@ import {
   Home,
   Calendar,
   CheckSquare,
-  StickyNote,
   Orbit,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
 
-export type View = 'home' | 'tasks' | 'calendar' | 'notes' | 'orbit';
+export type View = 'home' | 'tasks' | 'calendar' | 'orbit';
 
 interface NavItem {
   view: View;
@@ -29,7 +28,6 @@ const navItems: NavItem[] = [
   { view: 'home', label: 'Home', icon: <Home size={20} /> },
   { view: 'tasks', label: 'Tasks', icon: <CheckSquare size={20} /> },
   { view: 'calendar', label: 'Calendar', icon: <Calendar size={20} /> },
-  { view: 'notes', label: 'Notes', icon: <StickyNote size={20} /> },
   { view: 'orbit', label: 'Priority Orbit', icon: <Orbit size={20} /> },
 ];
 

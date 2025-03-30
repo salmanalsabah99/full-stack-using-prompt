@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-export default function DashboardHeader() {
+interface DashboardHeaderProps {
+  title?: string;
+}
+
+export default function DashboardHeader({ title }: DashboardHeaderProps) {
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
@@ -20,7 +24,7 @@ export default function DashboardHeader() {
       className="mb-8"
     >
       <h1 className="text-2xl md:text-3xl font-medium text-gray-800">
-        {greeting}, Salman
+        {title || `${greeting}, Salman`}
       </h1>
       <p className="text-gray-500 mt-2">
         Here's what's happening today
