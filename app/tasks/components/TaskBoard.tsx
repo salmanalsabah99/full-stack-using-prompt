@@ -6,8 +6,9 @@ import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { useTaskLists } from '../hooks/useTaskLists';
 import TaskList from './TaskList';
 import AddList from './AddList';
-import { getListColor } from '../utils/colors';
+import { getListColor } from '@/lib/constants';
 import { buttonStyles } from '../utils/styles';
+import { Task } from '@/types/task';
 
 const TaskBoard = () => {
   const {
@@ -34,6 +35,17 @@ const TaskBoard = () => {
       handleTaskMove(draggableId, source.droppableId, destination.droppableId, destination.index);
     } else {
       handleTaskReorder(source.droppableId, source.index, destination.index);
+    }
+  };
+
+  const handleTaskUpdateWrapper = async (task: Task) => {
+    await handleTaskUpdate(task.listId, task.id, task);
+  };
+
+  const handleTaskDeleteWrapper = async (id: string | number) => {
+    const task = taskLists.flatMap(list => list.tasks).find(t => t.id === id);
+    if (task) {
+      await handleTaskDelete(task.listId, task.id);
     }
   };
 
@@ -79,6 +91,8 @@ const TaskBoard = () => {
                 onReorderTasks={handleTaskReorder}
                 onMoveTask={handleTaskMove}
                 onUpdateList={handleListUpdate}
+                onUpdate={handleTaskUpdateWrapper}
+                onDelete={handleTaskDeleteWrapper}
               />
             ))}
           </div>

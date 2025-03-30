@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar, { View } from '../../components/Sidebar';
 import TaskBoard from '../tasks/components/TaskBoard';
 import Calendar from '../calendar/page';
-import NotesView from '../notes/page';
 import TodayView from './components/TodayView';
 
 export default function Dashboard() {
@@ -17,8 +16,6 @@ export default function Dashboard() {
         return <TaskBoard />;
       case 'calendar':
         return <Calendar />;
-      case 'notes':
-        return <NotesView />;
       case 'home':
       default:
         return <TodayView />;

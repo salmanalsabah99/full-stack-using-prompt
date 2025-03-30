@@ -9,7 +9,7 @@ import { useTaskLists } from './hooks/useTaskLists';
 import TaskBoard from './components/TaskBoard';
 import { Canvas } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
-import { pageStyles } from './utils/pageStyles';
+import { pageStyles } from './utils/styles';
 
 export default function TasksPage() {
   const { handleListAdd } = useTaskLists();
