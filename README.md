@@ -62,78 +62,86 @@ All development is **prompt-driven**, from start to finish.
 
 ## 🧪 Prompting Styles
 
-We use two styles of prompts depending on the task:
+We use a structured prompt format in Leo depending on the task type. It blends system design, clean frontend, and robust backend thinking — always with clear logic and good taste.
 
 ---
 
-### 1. 🎨 Natural Prompt – Styling & Design
+### 1. 🧠 Full-Stack Feature Prompt – Design, Logic, and Debugging  
+Use this prompt format when building new features, fixing bugs, or doing anything that spans the full stack.
 
-Example:
+✅ **Unified Format – Use Every Time:**
 
-> **Rebuild the TaskBoard UI** in a clean, minimal way using the current file structure.  
-> Do not create new components unless necessary.
+1. **Feature Title**  
+   *e.g. Feature: Add Event*
 
-**✅ Core Functionality:**
-- Fetch and render all `TaskLists` from MySQL backend
-- Use real backend API (TRPC or REST)
-- Render each list as a **glassmorphic vertical column**
-- Add a `+ Add List` button:
-  - Sends a POST request to create new TaskList
-  - Appends the new list to the board immediately
-- No drag-and-drop yet – just a simple flex layout
+2. **Final Goal**  
+   What is the high-level purpose of this feature in the Leo app?  
+   Why are we building it? How does it help?
 
-**✅ Visual Design:**
-- Background: **Starry Night Gradient**
-  - `from-indigo-900 via-sky-800 to-sky-700`
-- List Cards:
-  - `bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg text-white`
-- Header:
-  - Centered gradient text: **“Task Board”**
+3. **Architectural Context**  
+   Describe the tech stack (e.g. Next.js, Prisma, MySQL) and how this fits into the existing component structure.  
+   Example: `TaskBoard` → `TaskList` → `AddTask`  
+   Use clean, Notion-style theming with flexible layouts.
 
----
+4. **Implementation Philosophy**  
+   Think before coding. Choose the right paradigm (OOP, functional, hybrid).  
+   Separate concerns clearly: UI logic, state, database logic, effects.  
+   Prioritize composability and scalability.
 
-### 2. 🧠 Logic-Heavy Prompt – Functionality Bug Fix
+5. **Functional Requirements**  
+   Bullet list of exactly what the feature must do:  
+   - Render UI element  
+   - Handle interactions  
+   - Send/receive API data  
+   - Validate user input  
+   - Show loading/error states
 
-**Fix the task deletion bug** where the first attempt fails with `"Task not found"` but the second attempt works.
+6. **Data Flow Strategy**  
+   Define how data moves through the system:  
+   → UI → State → Backend → Database → and back again.
 
-**✅ Problem:**
-- Clicking “Delete” gives: `Task not found`
-- Works on retry
+7. **Edge Cases and Constraints**  
+   Identify all boundary conditions:  
+   - What if the user input is empty?  
+   - What if the API fails?  
+   - What if data is duplicated or stale?
 
-**✅ Root Cause:**
-- UI updates optimistically *before* backend deletion is confirmed
-- `taskId` might be stale or missing
+8. **Testing & Debugging Plan**  
+   Plan how to test this feature:  
+   - Unit tests  
+   - Integration tests  
+   - Dev-only logs or assertions  
+   - Error toasts and fallback behaviors
 
-**✅ Required Fix:**
+9. **File Awareness Instructions**  
+   Don’t generate blind code. Read the existing files first.  
+   Respect the file structure — no duplicates, no bloat.  
+   Add logic to the right place.
 
-1. Disable Optimistic Deletion
-- Do not remove the task from state until the backend confirms success
+10. **Output Format**  
+    Use Markdown code blocks with the filename shown above the block.  
+    Only include changed or new files.  
+    Example:  
+    **File:** `components/TaskList.tsx`
+    ```ts
+    // Updated logic here
+    ```
 
-2. Confirm Task ID
-```ts
-if (!taskId) {
-  console.warn("No task ID provided to delete");
-  return;
-}
-```
+11. **Style and UX Notes**  
+    Follow the design system:  
+    - Notion-style minimalism  
+    - Subtle, elegant animations  
+    - Glassmorphism or soft UI when relevant  
+    - Clear hierarchy, spacing, and white space  
+    - Avoid cluttered or overly dark visual themes
 
-3. Await the Delete Mutation
-```ts
-try {
-  await deleteTask({ id });
-  setTasks(prev => prev.filter(t => t.id !== id));
-} catch (error) {
-  showErrorToast("Failed to delete task. Try again.");
-}
-```
+12. **Final Reminder**  
+    Think holistically across the full stack:  
+    - Frontend logic, backend APIs, DB structure, and state flow  
+    - Consider multiple architectures before choosing  
+    - Make tradeoffs explicit  
+    - Prioritize long-term maintainability, clarity, and clean abstraction over fast or dirty solutions
 
-4. Ensure Fresh State
-- Check that task IDs are passed correctly through props
-- Avoid stale component references
-  
-**✅ Result:**
-- Task deletes immediately on first attempt
-- No error toast unless there’s a real backend failure
 
 ## 📸 Visual Progress
 
