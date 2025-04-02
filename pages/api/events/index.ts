@@ -1,31 +1,30 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '../../../lib/prisma'
-import { CreateEventInput, EventsResponse, EventResponse } from '../../../types'
+import { prisma } from '@/lib/prisma'
+import { verifyAuth } from '@/lib/auth'
+import { EventsResponse } from '@/types'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<EventsResponse | EventResponse>
+  res: NextApiResponse<EventsResponse>
 ) {
+  const auth = verifyAuth(req, res)
+  if (!auth) return
+
   if (req.method === 'GET') {
     try {
-      const { userId, date } = req.query
+      const { date } = req.query
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-      if (!userId || typeof userId !== 'string' || !date || typeof date !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: 'userId and date are required'
-        })
-      }
-
-      // Parse the date and create start/end of day
-      const startOfDay = new Date(date)
+      // Use provided date or default to today
+      const startOfDay = date ? new Date(date as string) : today
       startOfDay.setHours(0, 0, 0, 0)
-      const endOfDay = new Date(date)
+      const endOfDay = new Date(startOfDay)
       endOfDay.setHours(23, 59, 59, 999)
 
       const events = await prisma.event.findMany({
         where: {
-          userId,
+          userId: auth.userId,
           OR: [
             {
               startTime: {
@@ -46,87 +45,55 @@ export default async function handler(
         }
       })
 
-      return res.status(200).json({
-        success: true,
-        data: events
-      })
+      const formattedEvents = events.map(event => ({
+        ...event,
+        createdAt: event.createdAt.toISOString(),
+        updatedAt: event.updatedAt.toISOString(),
+        startTime: event.startTime.toISOString(),
+        endTime: event.endTime?.toISOString(),
+      }))
+
+      return res.status(200).json({ data: formattedEvents })
     } catch (error) {
       console.error('Error fetching events:', error)
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to fetch events'
-      })
+      return res.status(500).json({ data: [], error: 'Failed to fetch events' })
     }
   }
 
   if (req.method === 'POST') {
     try {
-      const input: CreateEventInput = req.body
+      const { title, description, startTime, endTime, location, taskId } = req.body
 
-      // Validate required fields
-      if (!input.title || !input.startTime || !input.userId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Title, startTime, and userId are required'
-        })
-      }
-
-      // Validate time logic
-      if (input.endTime && input.endTime <= input.startTime) {
-        return res.status(400).json({
-          success: false,
-          error: 'endTime must be after startTime'
-        })
-      }
-
-      // Verify user exists
-      const user = await prisma.user.findUnique({
-        where: { id: input.userId }
-      })
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        })
-      }
-
-      // If taskId is provided, verify it exists and belongs to the user
-      if (input.taskId) {
-        const task = await prisma.task.findFirst({
-          where: {
-            id: input.taskId,
-            userId: input.userId
-          }
-        })
-
-        if (!task) {
-          return res.status(404).json({
-            success: false,
-            error: 'Task not found or does not belong to user'
-          })
-        }
+      if (!title || !startTime) {
+        return res.status(400).json({ data: [], error: 'Title and startTime are required' })
       }
 
       const event = await prisma.event.create({
-        data: input
+        data: {
+          title,
+          description,
+          startTime: new Date(startTime),
+          endTime: endTime ? new Date(endTime) : null,
+          location,
+          userId: auth.userId,
+          taskId,
+        },
       })
 
       return res.status(201).json({
-        success: true,
-        data: event
+        data: [{
+          ...event,
+          createdAt: event.createdAt.toISOString(),
+          updatedAt: event.updatedAt.toISOString(),
+          startTime: event.startTime.toISOString(),
+          endTime: event.endTime?.toISOString(),
+        }],
       })
     } catch (error) {
       console.error('Error creating event:', error)
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to create event'
-      })
+      return res.status(500).json({ data: [], error: 'Failed to create event' })
     }
   }
 
-  return res.status(405).json({
-    success: false,
-    error: 'Method not allowed'
-  })
+  return res.status(405).json({ data: [], error: 'Method not allowed' })
 } 
