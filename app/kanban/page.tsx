@@ -10,7 +10,7 @@ import { motion } from 'framer-motion'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-const TodayTasksPage: React.FC = () => {
+const KanbanPage: React.FC = () => {
   const { userId, isLoading } = useUser()
   const router = useRouter()
 
@@ -21,10 +21,92 @@ const TodayTasksPage: React.FC = () => {
 
   const taskListId = taskListData?.data?.id
 
-  const { data, error, isLoading: tasksLoading } = useSWR(
+  const { data, error, isLoading: tasksLoading, mutate } = useSWR(
     userId && taskListId ? `/api/tasks?userId=${userId}&taskListId=${taskListId}` : null,
     fetcher
   )
+
+  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      })
+
+      if (!response.ok) throw new Error('Failed to update task')
+
+      // Optimistically update the UI
+      const updatedTask = await response.json()
+      mutate(
+        {
+          ...data,
+          data: data.data.map((task: Task) =>
+            task.id === taskId ? updatedTask.data : task
+          ),
+        },
+        false
+      )
+    } catch (error) {
+      console.error('Error updating task:', error)
+      // You might want to show an error notification here
+    }
+  }
+
+  const handleTaskDelete = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) throw new Error('Failed to delete task')
+
+      // Optimistically update the UI
+      mutate(
+        {
+          ...data,
+          data: data.data.filter((task: Task) => task.id !== taskId),
+        },
+        false
+      )
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      // You might want to show an error notification here
+    }
+  }
+
+  const handleTaskCreate = async (taskData: Partial<Task>) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...taskData,
+          userId,
+          taskListId,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to create task')
+
+      // Optimistically update the UI
+      const newTask = await response.json()
+      mutate(
+        {
+          ...data,
+          data: [...data.data, newTask.data],
+        },
+        false
+      )
+    } catch (error) {
+      console.error('Error creating task:', error)
+      // You might want to show an error notification here
+    }
+  }
 
   if (isLoading || tasksLoading) {
     return (
@@ -122,6 +204,9 @@ const TodayTasksPage: React.FC = () => {
                 title={column.title}
                 tasks={tasks.filter((task: Task) => task.status === column.id)}
                 status={column.id}
+                onTaskUpdate={handleTaskUpdate}
+                onTaskDelete={handleTaskDelete}
+                onTaskCreate={handleTaskCreate}
               />
             </motion.div>
           ))}
@@ -138,12 +223,15 @@ const TodayTasksPage: React.FC = () => {
             <motion.div
               key={column.id}
               variants={columnVariants}
-              custom={index + 3} // Offset by top row count
+              custom={index}
             >
               <KanbanColumn
                 title={column.title}
                 tasks={tasks.filter((task: Task) => task.status === column.id)}
                 status={column.id}
+                onTaskUpdate={handleTaskUpdate}
+                onTaskDelete={handleTaskDelete}
+                onTaskCreate={handleTaskCreate}
               />
             </motion.div>
           ))}
@@ -153,4 +241,4 @@ const TodayTasksPage: React.FC = () => {
   )
 }
 
-export default TodayTasksPage 
+export default KanbanPage 

@@ -129,7 +129,7 @@ export default function TaskList() {
         <div
           key={task.id}
           className={cn(
-            "bg-white p-4 rounded-lg shadow-sm border border-gray-100",
+            "bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/50 hover:-translate-y-0.5",
             task.status === 'DONE' && "opacity-75",
             task.status === 'ARCHIVED' && "opacity-50"
           )}

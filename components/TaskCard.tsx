@@ -8,13 +8,21 @@ import { motion } from 'framer-motion'
 
 interface TaskCardProps {
   task: Task
+  onEdit: (task: Task) => void
+  onDelete: (taskId: string) => void
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      onDelete(task.id)
+    }
+  }
+
   return (
     <motion.div 
-      className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 hover:border-blue-100"
-      whileHover={{ scale: 1.02 }}
+      className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/50"
+      whileHover={{ scale: 1.02, y: -2 }}
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-start justify-between">
@@ -63,6 +71,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             title="Edit task"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => onEdit(task)}
           >
             <Pencil className="h-4 w-4" />
           </motion.button>
@@ -71,6 +80,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             title="Delete task"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleDelete}
           >
             <Trash2 className="h-4 w-4" />
           </motion.button>
