@@ -101,7 +101,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
     <>
       <div 
         className="bg-blue-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02] cursor-pointer"
-        onClick={() => router.push('/today-tasks')}
+        onClick={() => router.push('/kanban')}
       >
         <div className="flex items-center gap-2 mb-4">
           <span className="text-2xl">🧠</span>

@@ -44,7 +44,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, tasks, status }) => 
         </span>
       </div>
       <motion.div 
-        className="flex-1 bg-white rounded-lg shadow-sm p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)] hover:shadow-md transition-shadow duration-200"
+        className="flex-1 bg-gradient-to-b from-white/95 to-white/90 backdrop-blur-md rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.08)] shadow-blue-100/50 ring-1 ring-inset ring-blue-100/50 p-5 space-y-3 overflow-y-auto max-h-[calc(100vh-250px)]"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
