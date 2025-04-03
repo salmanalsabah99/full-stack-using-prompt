@@ -6,6 +6,7 @@ import { useUser } from '@/context/UserContext'
 import DashboardTasksCard from '@/components/DashboardTasksCard'
 import DashboardNotesCard from '@/components/DashboardNotesCard'
 import DashboardEventsCard from '@/components/DashboardEventsCard'
+import OrbitPriorityCard from '@/components/dashboard/OrbitPriorityCard'
 import FloatingActionButton from '@/components/FloatingActionButton'
 
 const DashboardPage: React.FC = () => {
@@ -41,10 +42,15 @@ const DashboardPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DashboardTasksCard userId={userId} />
-          <DashboardEventsCard userId={userId} />
-          <DashboardNotesCard userId={userId} />
+        <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <DashboardTasksCard userId={userId} />
+            <DashboardEventsCard userId={userId} />
+            <DashboardNotesCard userId={userId} />
+          </div>
+          <div className="w-full">
+            <OrbitPriorityCard />
+          </div>
         </div>
       </div>
 
