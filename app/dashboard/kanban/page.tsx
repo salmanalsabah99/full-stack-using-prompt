@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/context/UserContext'
 import useSWR from 'swr'
@@ -24,6 +24,15 @@ const KanbanPage: React.FC = () => {
     userId && taskListId ? `/api/tasks?userId=${userId}&taskListId=${taskListId}` : null,
     fetcher
   )
+
+  useEffect(() => {
+    // If we're coming from the dashboard card transition, we don't need to do anything
+    // If we're coming from a direct URL, we should show the full page immediately
+    const isDirectAccess = !window.history.state?.transition
+    if (isDirectAccess) {
+      document.body.style.overflow = 'auto'
+    }
+  }, [])
 
   if (isLoading || tasksLoading) {
     return (
@@ -56,9 +65,9 @@ const KanbanPage: React.FC = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 kanban-enter kanban-enter-active">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Kanban Board</h1>
           <button
             onClick={() => router.back()}

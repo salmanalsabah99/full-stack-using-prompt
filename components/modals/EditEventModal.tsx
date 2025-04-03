@@ -71,7 +71,12 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
   }
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title="Edit Event">
+    <BaseModal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title="Edit Event"
+      className="z-50"
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {success && (
           <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md">
@@ -110,39 +115,41 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
             rows={3}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm resize-none"
             disabled={isSubmitting}
             placeholder="Enter event description"
           />
         </div>
 
-        <div>
-          <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-            Start Time
-          </label>
-          <input
-            type="datetime-local"
-            id="startTime"
-            required
-            value={formData.startTime}
-            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            disabled={isSubmitting}
-          />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
+              Start Time
+            </label>
+            <input
+              type="datetime-local"
+              id="startTime"
+              required
+              value={formData.startTime}
+              onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              disabled={isSubmitting}
+            />
+          </div>
 
-        <div>
-          <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-            End Time (Optional)
-          </label>
-          <input
-            type="datetime-local"
-            id="endTime"
-            value={formData.endTime}
-            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            disabled={isSubmitting}
-          />
+          <div>
+            <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
+              End Time (Optional)
+            </label>
+            <input
+              type="datetime-local"
+              id="endTime"
+              value={formData.endTime}
+              onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
         <div>
@@ -160,11 +167,11 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
           />
         </div>
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-end space-x-3 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             disabled={isSubmitting}
           >
             Cancel
@@ -172,7 +179,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
           <button
             type="submit"
             disabled={isSubmitting || !formData.title.trim() || !formData.startTime}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
           >
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </button>

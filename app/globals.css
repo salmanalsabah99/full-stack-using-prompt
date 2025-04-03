@@ -85,4 +85,39 @@
   .kanban-scroll::-webkit-scrollbar-thumb:hover {
     background: #d1d5db;
   }
+
+  /* Transition overlay */
+  .transition-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 40;
+  }
+
+  /* Card expansion animation */
+  .card-expand {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-expand-enter {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  .card-expand-enter-active {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .card-expand-exit {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .card-expand-exit-active {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 } 

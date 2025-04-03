@@ -7,9 +7,10 @@ interface EditNoteModalProps {
   isOpen: boolean
   onClose: () => void
   note: Note
+  onUpdate?: () => void
 }
 
-const EditNoteModal: React.FC<EditNoteModalProps> = ({ isOpen, onClose, note }) => {
+const EditNoteModal: React.FC<EditNoteModalProps> = ({ isOpen, onClose, note, onUpdate }) => {
   const { mutate } = useSWRConfig()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -50,6 +51,9 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({ isOpen, onClose, note }) 
 
       setSuccess(true)
       mutate('/api/notes') // Revalidate notes list
+      if (onUpdate) {
+        onUpdate()
+      }
       setTimeout(() => {
         onClose()
       }, 1000)
@@ -61,7 +65,12 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({ isOpen, onClose, note }) 
   }
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title="Edit Note">
+    <BaseModal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title="Edit Note"
+      className="z-50"
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {success && (
           <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md">
@@ -98,10 +107,10 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({ isOpen, onClose, note }) 
           <textarea
             id="content"
             required
-            rows={4}
+            rows={6}
             value={formData.content}
             onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm resize-none"
             disabled={isSubmitting}
             placeholder="Enter note content"
           />
