@@ -8,10 +8,34 @@ import DashboardNotesCard from '@/components/DashboardNotesCard'
 import DashboardEventsCard from '@/components/DashboardEventsCard'
 import OrbitPriorityCard from '@/components/dashboard/OrbitPriorityCard'
 import FloatingActionButton from '@/components/FloatingActionButton'
+import { motion } from 'framer-motion'
 
 const DashboardPage: React.FC = () => {
   const { userId, isLoading } = useUser()
   const router = useRouter()
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      },
+    },
+  }
 
   if (isLoading) {
     return (
@@ -29,7 +53,12 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <motion.div 
+          className="flex justify-between items-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <button
             onClick={() => {
@@ -40,18 +69,35 @@ const DashboardPage: React.FC = () => {
           >
             Sign Out
           </button>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DashboardTasksCard userId={userId} />
-            <DashboardEventsCard userId={userId} />
-            <DashboardNotesCard userId={userId} />
-          </div>
-          <div className="w-full">
+        <motion.div 
+          className="grid grid-cols-1 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+          >
+            <motion.div variants={cardVariants}>
+              <DashboardTasksCard userId={userId} />
+            </motion.div>
+            <motion.div variants={cardVariants}>
+              <DashboardEventsCard userId={userId} />
+            </motion.div>
+            <motion.div variants={cardVariants}>
+              <DashboardNotesCard userId={userId} />
+            </motion.div>
+          </motion.div>
+          <motion.div 
+            className="w-full"
+            variants={cardVariants}
+          >
             <OrbitPriorityCard />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       <FloatingActionButton />
