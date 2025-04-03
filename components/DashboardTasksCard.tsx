@@ -7,13 +7,11 @@ import { DashboardCardProps } from '@/types/components'
 import { Trash2, Pencil } from 'lucide-react'
 import EditTaskModal from './modals/EditTaskModal'
 import { Task, TaskStatus, Priority } from '@prisma/client'
-import KanbanTransition from './KanbanTransition'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
-  const [isExpanded, setIsExpanded] = useState(false)
   const router = useRouter()
 
   const { data: taskListData } = useSWR(
@@ -103,7 +101,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
     <>
       <div 
         className="bg-blue-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02] cursor-pointer"
-        onClick={() => setIsExpanded(true)}
+        onClick={() => router.push('/today-tasks')}
       >
         <div className="flex items-center gap-2 mb-4">
           <span className="text-2xl">🧠</span>
@@ -179,13 +177,6 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
           task={editingTask}
         />
       )}
-
-      <KanbanTransition
-        isExpanded={isExpanded}
-        onClose={() => setIsExpanded(false)}
-        initialTasks={tasks}
-        userId={userId}
-      />
     </>
   )
 }
