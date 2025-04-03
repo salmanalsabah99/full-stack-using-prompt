@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useUser } from '@/context/UserContext'
 import BaseModal from './BaseModal'
 import { useSWRConfig } from 'swr'
-import { Priority } from '@prisma/client'
+import { Priority, TaskStatus } from '@prisma/client'
 
 interface CreateTaskModalProps {
   isOpen: boolean
@@ -13,9 +13,11 @@ interface CreateTaskModalProps {
 
 interface FormData {
   title: string
-  priority: Priority
+  description: string
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   taskListId: string
   dueDate: string
+  status: TaskStatus
 }
 
 const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) => {
@@ -27,9 +29,11 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
   const [defaultTaskListId, setDefaultTaskListId] = useState<string | null>(null)
   const [formData, setFormData] = useState<FormData>({
     title: '',
+    description: '',
     priority: 'MEDIUM',
-    taskListId: '', // Will be set to default task list ID
-    dueDate: '' // Added dueDate field
+    taskListId: '',
+    dueDate: '',
+    status: 'TODO'
   })
 
   // Fetch default task list on mount
@@ -94,6 +98,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
       priority: formData.priority,
       taskListId: formData.taskListId,
       dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
+      status: formData.status
     })
 
     try {
@@ -108,6 +113,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
           priority: formData.priority,
           taskListId: formData.taskListId,
           dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
+          status: formData.status
         }),
       })
 
@@ -165,12 +171,28 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
           <input
             type="text"
             id="title"
-            required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            disabled={isSubmitting}
+            required
           />
+        </div>
+
+        <div>
+          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            Status
+          </label>
+          <select
+            id="status"
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          >
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
         </div>
 
         <div>

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../lib/prisma'
-import { UpdateNoteInput, NoteResponse } from '../../../types'
+import { NoteResponse } from '../../../types'
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,7 +17,7 @@ export default async function handler(
 
   if (req.method === 'PUT') {
     try {
-      const input: UpdateNoteInput = req.body
+      const input = req.body
 
       // Verify note exists
       const existingNote = await prisma.note.findUnique({
@@ -31,48 +31,24 @@ export default async function handler(
         })
       }
 
-      // If taskId is provided, verify it exists and belongs to the user
-      if (input.taskId) {
-        const task = await prisma.task.findFirst({
-          where: {
-            id: input.taskId,
-            userId: existingNote.userId
-          }
-        })
-
-        if (!task) {
-          return res.status(404).json({
-            success: false,
-            error: 'Task not found or does not belong to user'
-          })
-        }
-      }
-
-      // If eventId is provided, verify it exists and belongs to the user
-      if (input.eventId) {
-        const event = await prisma.event.findFirst({
-          where: {
-            id: input.eventId,
-            userId: existingNote.userId
-          }
-        })
-
-        if (!event) {
-          return res.status(404).json({
-            success: false,
-            error: 'Event not found or does not belong to user'
-          })
-        }
-      }
-
       const updatedNote = await prisma.note.update({
         where: { id },
-        data: input
+        data: {
+          title: input.title,
+          content: input.content
+        }
       })
+
+      // Format dates for response
+      const formattedNote = {
+        ...updatedNote,
+        createdAt: updatedNote.createdAt.toISOString(),
+        updatedAt: updatedNote.updatedAt.toISOString()
+      }
 
       return res.status(200).json({
         success: true,
-        data: updatedNote
+        data: formattedNote
       })
     } catch (error) {
       console.error('Error updating note:', error)

@@ -154,10 +154,15 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="text-sm text-center">
+        <div className="text-sm text-center space-y-2">
           <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
             Don't have an account? Register
           </Link>
+          <div>
+            <Link href="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Forgot your password?
+            </Link>
+          </div>
         </div>
       </div>
     </div>

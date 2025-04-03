@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 import { TaskStatus, Priority } from '@prisma/client'
 import { TaskList as TaskListType } from '@prisma/client'
 import { format } from 'date-fns'
-import { Calendar, Clock, CheckCircle2, Circle, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, CheckCircle2, Circle, AlertCircle, Archive, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import EditTaskModal from './modals/EditTaskModal'
 
 interface Task {
   id: string
@@ -29,6 +30,7 @@ export default function TaskList() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [taskListId, setTaskListId] = useState<string>('')
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   useEffect(() => {
     const fetchTaskList = async () => {
@@ -50,7 +52,7 @@ export default function TaskList() {
         setTaskListId(data.data.id)
 
         // Then fetch all tasks for this task list that are due today
-        const tasksResponse = await fetch(`/api/tasks?userId=${userId}&taskListId=${data.data.id}&dueToday=true&includeCompleted=true`)
+        const tasksResponse = await fetch(`/api/tasks?userId=${userId}&taskListId=${data.data.id}&dueToday=true`)
         const tasksData = await tasksResponse.json()
 
         if (!tasksResponse.ok) {
@@ -58,6 +60,12 @@ export default function TaskList() {
         }
 
         if (tasksData.success && tasksData.data) {
+          console.log('Received tasks in TaskList:', tasksData.data.map((task: Task) => ({
+            id: task.id,
+            title: task.title,
+            status: task.status,
+            dueDate: task.dueDate
+          })))
           setTasks(tasksData.data)
         } else {
           throw new Error('Invalid tasks response format')
@@ -71,6 +79,25 @@ export default function TaskList() {
 
     fetchTaskList()
   }, [userId])
+
+  const handleTaskUpdate = async () => {
+    if (!userId || !taskListId) return
+
+    try {
+      const tasksResponse = await fetch(`/api/tasks?userId=${userId}&taskListId=${taskListId}&dueToday=true`)
+      const tasksData = await tasksResponse.json()
+
+      if (!tasksResponse.ok) {
+        throw new Error(tasksData.error || 'Failed to fetch tasks')
+      }
+
+      if (tasksData.success && tasksData.data) {
+        setTasks(tasksData.data)
+      }
+    } catch (err) {
+      console.error('Error refreshing tasks:', err)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -103,7 +130,8 @@ export default function TaskList() {
           key={task.id}
           className={cn(
             "bg-white p-4 rounded-lg shadow-sm border border-gray-100",
-            task.status === 'DONE' && "opacity-75"
+            task.status === 'DONE' && "opacity-75",
+            task.status === 'ARCHIVED' && "opacity-50"
           )}
         >
           <div className="flex items-start justify-between">
@@ -111,14 +139,23 @@ export default function TaskList() {
               <button
                 onClick={async () => {
                   try {
+                    // Define status transitions
+                    const statusTransitions: Record<TaskStatus, TaskStatus> = {
+                      'TODO': 'IN_PROGRESS',
+                      'IN_PROGRESS': 'DONE',
+                      'DONE': 'ARCHIVED',
+                      'ARCHIVED': 'TODO'
+                    }
+
+                    const newStatus = statusTransitions[task.status]
                     const response = await fetch(`/api/tasks/${task.id}`, {
                       method: 'PATCH',
                       headers: {
                         'Content-Type': 'application/json',
                       },
                       body: JSON.stringify({
-                        status: task.status === 'TODO' ? 'DONE' : 'TODO',
-                        completedAt: task.status === 'TODO' ? new Date() : null,
+                        status: newStatus,
+                        completedAt: newStatus === 'DONE' ? new Date() : null,
                       }),
                     })
 
@@ -127,11 +164,7 @@ export default function TaskList() {
                     }
 
                     // Refresh tasks
-                    const tasksResponse = await fetch(`/api/tasks?userId=${userId}&taskListId=${taskListId}&dueToday=true&includeCompleted=true`)
-                    const tasksData = await tasksResponse.json()
-                    if (tasksData.success && tasksData.data) {
-                      setTasks(tasksData.data)
-                    }
+                    await handleTaskUpdate()
                   } catch (err) {
                     console.error('Error updating task:', err)
                   }
@@ -140,12 +173,16 @@ export default function TaskList() {
               >
                 {task.status === 'DONE' ? (
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
+                ) : task.status === 'IN_PROGRESS' ? (
+                  <AlertCircle className="h-5 w-5 text-yellow-500" />
+                ) : task.status === 'ARCHIVED' ? (
+                  <Archive className="h-5 w-5 text-gray-500" />
                 ) : (
                   <Circle className="h-5 w-5" />
                 )}
               </button>
               <h3 className={cn(
-                "font-medium",
+                "text-sm font-medium",
                 task.status === 'DONE' ? "text-gray-500 line-through" : "text-gray-900"
               )}>
                 {task.title}
@@ -168,6 +205,25 @@ export default function TaskList() {
               )}>
                 {task.priority}
               </div>
+              <div className={cn(
+                'px-2 py-1 text-xs font-medium rounded-full',
+                {
+                  'bg-gray-100 text-gray-800': task.status === 'TODO',
+                  'bg-blue-100 text-blue-800': task.status === 'IN_PROGRESS',
+                  'bg-green-100 text-green-800': task.status === 'DONE',
+                  'bg-gray-200 text-gray-600': task.status === 'ARCHIVED',
+                }
+              )}>
+                {task.status}
+              </div>
+              <button
+                onClick={() => setEditingTask(task)}
+                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+                aria-label="Edit task"
+                title="Edit task"
+              >
+                <Pencil size={16} />
+              </button>
             </div>
           </div>
           {task.description && (
@@ -180,6 +236,16 @@ export default function TaskList() {
           )}
         </div>
       ))}
+      {editingTask && (
+        <EditTaskModal
+          isOpen={!!editingTask}
+          onClose={() => {
+            setEditingTask(null)
+            handleTaskUpdate()
+          }}
+          task={editingTask}
+        />
+      )}
     </div>
   )
 } 

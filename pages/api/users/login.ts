@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../lib/prisma'
 import { sign } from 'jsonwebtoken'
 import { compare } from 'bcryptjs'
-import cookie from 'cookie'
+import * as cookie from 'cookie'
 
 export default async function handler(
   req: NextApiRequest,

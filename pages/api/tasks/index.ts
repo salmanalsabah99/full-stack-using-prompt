@@ -1,7 +1,56 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../lib/prisma'
-import { CreateTaskInput, TasksResponse, TaskResponse } from '../../../types'
+import { Task, TaskStatus, Priority } from '@prisma/client'
 import { ensureDefaultTaskList } from '../../../lib/task-list'
+
+interface TasksResponse {
+  success: boolean
+  data?: {
+    id: string
+    title: string
+    description: string | null
+    status: TaskStatus
+    priority: Priority
+    dueDate: string | null
+    completedAt: string | null
+    order: number
+    createdAt: string
+    updatedAt: string
+    userId: string
+    taskListId: string
+  }[]
+  error?: string
+}
+
+interface TaskResponse {
+  success: boolean
+  data?: {
+    id: string
+    title: string
+    description: string | null
+    status: TaskStatus
+    priority: Priority
+    dueDate: string | null
+    completedAt: string | null
+    order: number
+    createdAt: string
+    updatedAt: string
+    userId: string
+    taskListId: string
+  }
+  error?: string
+}
+
+interface CreateTaskInput {
+  title: string
+  description?: string
+  status?: TaskStatus
+  priority?: Priority
+  dueDate?: string
+  order?: number
+  userId: string
+  taskListId: string
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -9,41 +58,34 @@ export default async function handler(
 ) {
   if (req.method === 'GET') {
     try {
-      const { taskListId, userId, dueToday } = req.query
+      const { userId, taskListId, dueToday } = req.query
 
-      if (!userId || typeof userId !== 'string') {
+      if (!userId) {
         return res.status(400).json({
           success: false,
-          error: 'User ID is required'
+          error: 'userId is required'
         })
       }
 
-      let effectiveTaskListId = taskListId
-
-      // Handle default task list case
-      if (taskListId === 'default') {
-        const defaultTaskList = await ensureDefaultTaskList(userId)
-        effectiveTaskListId = defaultTaskList.id
+      let where: any = {
+        userId: userId as string
       }
 
-      if (!effectiveTaskListId || typeof effectiveTaskListId !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: 'TaskList ID is required'
-        })
+      if (taskListId) {
+        where.taskListId = taskListId as string
       }
 
-      // Build where clause
-      const where: any = {
-        taskListId: effectiveTaskListId
-      }
-
-      // Handle dueToday filter
       if (dueToday === 'true') {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const tomorrow = new Date(today)
         tomorrow.setDate(tomorrow.getDate() + 1)
+
+        console.log('Today date range:', {
+          today: today.toISOString(),
+          tomorrow: tomorrow.toISOString()
+        })
+
         where.dueDate = {
           gte: today,
           lt: tomorrow
@@ -52,14 +94,31 @@ export default async function handler(
 
       const tasks = await prisma.task.findMany({
         where,
-        orderBy: {
-          order: 'asc'
-        }
+        orderBy: [
+          { order: 'asc' },
+          { createdAt: 'desc' }
+        ]
       })
+
+      console.log('Found tasks:', tasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        status: task.status,
+        dueDate: task.dueDate?.toISOString()
+      })))
+
+      // Convert Date objects to ISO strings for the response
+      const formattedTasks = tasks.map(task => ({
+        ...task,
+        dueDate: task.dueDate?.toISOString() || null,
+        completedAt: task.completedAt?.toISOString() || null,
+        createdAt: task.createdAt.toISOString(),
+        updatedAt: task.updatedAt.toISOString()
+      }))
 
       return res.status(200).json({
         success: true,
-        data: tasks
+        data: formattedTasks
       })
     } catch (error) {
       console.error('Error fetching tasks:', error)
@@ -115,13 +174,23 @@ export default async function handler(
         data: {
           ...input,
           taskListId: effectiveTaskListId,
-          order: lastTask ? lastTask.order + 1 : 0
+          order: lastTask ? lastTask.order + 1 : 0,
+          status: input.status || 'TODO'
         }
       })
 
+      // Convert Date objects to ISO strings for the response
+      const formattedTask = {
+        ...newTask,
+        dueDate: newTask.dueDate?.toISOString() || null,
+        completedAt: newTask.completedAt?.toISOString() || null,
+        createdAt: newTask.createdAt.toISOString(),
+        updatedAt: newTask.updatedAt.toISOString()
+      }
+
       return res.status(201).json({
         success: true,
-        data: newTask
+        data: formattedTask
       })
     } catch (error) {
       console.error('Error creating task:', error)

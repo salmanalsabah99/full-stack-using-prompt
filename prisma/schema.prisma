@@ -8,16 +8,18 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  name      String?
-  password  String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  events    Event[]
-  notes     Note[]
-  taskLists TaskList[]
-  tasks     Task[]
+  id              String     @id @default(cuid())
+  email           String     @unique
+  name            String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  password        String
+  resetToken      String?    @unique
+  resetTokenExpiry DateTime?
+  events          Event[]
+  notes           Note[]
+  taskLists       TaskList[]
+  tasks           Task[]
 
   @@map("users")
 }

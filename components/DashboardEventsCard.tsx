@@ -1,10 +1,11 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import useSWR from 'swr'
 import { format } from 'date-fns'
 import { DashboardCardProps, Event } from '@/types/components'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Pencil } from 'lucide-react'
+import EditEventModal from './modals/EditEventModal'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -14,6 +15,7 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
     userId ? `/api/events?userId=${userId}&date=${today}` : null,
     fetcher
   )
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
@@ -65,7 +67,7 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
   const events = data?.data || []
 
   return (
-    <div className="bg-green-50 rounded-xl p-6">
+    <div className="bg-green-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02]">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">📅</span>
         <h2 className="text-lg font-semibold text-gray-900">Today's Events</h2>
@@ -77,7 +79,7 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
           {events.map((event: Event) => (
             <div
               key={event.id}
-              className="p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors"
+              className="p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
             >
               <h3 className="font-medium text-gray-900 truncate">
                 {event.title}
@@ -95,6 +97,12 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
                   {format(new Date(event.endTime || event.startTime), 'h:mm a')}
                 </span>
                 <button
+                  onClick={() => setEditingEvent(event)}
+                  className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => handleDeleteEvent(event.id)}
                   className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                 >
@@ -104,6 +112,16 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
             </div>
           ))}
         </div>
+      )}
+      {editingEvent && (
+        <EditEventModal
+          isOpen={!!editingEvent}
+          onClose={() => {
+            setEditingEvent(null)
+            mutate()
+          }}
+          event={editingEvent}
+        />
       )}
     </div>
   )

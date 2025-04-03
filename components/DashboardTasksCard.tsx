@@ -1,13 +1,16 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import useSWR from 'swr'
-import { DashboardCardProps, Task } from '@/types/components'
-import { Trash2 } from 'lucide-react'
+import { DashboardCardProps } from '@/types/components'
+import { Trash2, Pencil } from 'lucide-react'
+import EditTaskModal from './modals/EditTaskModal'
+import { Task, TaskStatus, Priority } from '@prisma/client'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const { data: taskListData } = useSWR(
     userId ? `/api/tasklists?userId=${userId}&default=true` : null,
     fetcher
@@ -70,7 +73,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
   const tasks = data?.data || []
 
   return (
-    <div className="bg-blue-50 rounded-xl p-6">
+    <div className="bg-blue-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02]">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">🧠</span>
         <h2 className="text-lg font-semibold text-gray-900">Today's Tasks</h2>
@@ -82,7 +85,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
           {tasks.map((task: Task) => (
             <div
               key={task.id}
-              className="flex items-center gap-3 p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors"
+              className="flex items-center gap-3 p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
             >
               <input
                 type="checkbox"
@@ -112,8 +115,16 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
                   {task.priority}
                 </span>
                 <button
+                  onClick={() => setEditingTask(task)}
+                  className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                  title="Edit task"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => handleDeleteTask(task.id)}
                   className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Delete task"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -121,6 +132,16 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
             </div>
           ))}
         </div>
+      )}
+      {editingTask && (
+        <EditTaskModal
+          isOpen={!!editingTask}
+          onClose={() => {
+            setEditingTask(null)
+            mutate()
+          }}
+          task={editingTask}
+        />
       )}
     </div>
   )

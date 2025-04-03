@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../lib/prisma'
-import { UpdateEventInput, EventResponse } from '../../../types'
+import { EventResponse } from '../../../types'
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,7 +17,7 @@ export default async function handler(
 
   if (req.method === 'PUT') {
     try {
-      const input: UpdateEventInput = req.body
+      const input = req.body
 
       // Verify event exists
       const existingEvent = await prisma.event.findUnique({
@@ -31,39 +31,29 @@ export default async function handler(
         })
       }
 
-      // Validate time logic if both times are provided
-      if (input.startTime && input.endTime && input.endTime <= input.startTime) {
-        return res.status(400).json({
-          success: false,
-          error: 'endTime must be after startTime'
-        })
-      }
-
-      // If taskId is provided, verify it exists and belongs to the user
-      if (input.taskId) {
-        const task = await prisma.task.findFirst({
-          where: {
-            id: input.taskId,
-            userId: existingEvent.userId
-          }
-        })
-
-        if (!task) {
-          return res.status(404).json({
-            success: false,
-            error: 'Task not found or does not belong to user'
-          })
-        }
-      }
-
       const updatedEvent = await prisma.event.update({
         where: { id },
-        data: input
+        data: {
+          title: input.title,
+          description: input.description,
+          startTime: new Date(input.startTime),
+          endTime: input.endTime ? new Date(input.endTime) : null,
+          location: input.location
+        }
       })
+
+      // Format dates for response
+      const formattedEvent = {
+        ...updatedEvent,
+        startTime: updatedEvent.startTime.toISOString(),
+        endTime: updatedEvent.endTime?.toISOString() || null,
+        createdAt: updatedEvent.createdAt.toISOString(),
+        updatedAt: updatedEvent.updatedAt.toISOString()
+      }
 
       return res.status(200).json({
         success: true,
-        data: updatedEvent
+        data: formattedEvent
       })
     } catch (error) {
       console.error('Error updating event:', error)
