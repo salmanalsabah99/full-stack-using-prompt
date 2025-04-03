@@ -146,7 +146,10 @@ Use this prompt format when building new features, fixing bugs, or doing anythin
 ## 📸 Visual Progress
 
 
-https://github.com/user-attachments/assets/35fb75b2-7ce2-4bc3-b1ac-1d3aaa5672c3
+
+
+https://github.com/user-attachments/assets/d54ad1f3-554f-4664-a4e9-c5e9fb5378af
+
 
 
 
