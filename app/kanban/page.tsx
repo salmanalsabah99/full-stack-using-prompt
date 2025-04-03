@@ -1,18 +1,23 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/context/UserContext'
 import useSWR from 'swr'
-import { Task } from '@prisma/client'
+import { Task, TaskStatus } from '@prisma/client'
 import KanbanColumn from '@/components/KanbanColumn'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import TaskForm from '@/components/TaskForm'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const KanbanPage: React.FC = () => {
   const { userId, isLoading } = useUser()
   const router = useRouter()
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const { data: taskListData } = useSWR(
     userId ? `/api/tasklists?userId=${userId}&default=true` : null,
@@ -21,10 +26,16 @@ const KanbanPage: React.FC = () => {
 
   const taskListId = taskListData?.data?.id
 
-  const { data, error, isLoading: tasksLoading, mutate } = useSWR(
+  const { data, error: tasksError, isLoading: tasksLoading, mutate } = useSWR(
     userId && taskListId ? `/api/tasks?userId=${userId}&taskListId=${taskListId}` : null,
     fetcher
   )
+
+  React.useEffect(() => {
+    if (data) {
+      setTasks(data.data)
+    }
+  }, [data])
 
   const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
     try {
@@ -49,9 +60,10 @@ const KanbanPage: React.FC = () => {
         },
         false
       )
+      setEditingTask(null)
     } catch (error) {
       console.error('Error updating task:', error)
-      // You might want to show an error notification here
+      setError(error instanceof Error ? error.message : 'Failed to update task')
     }
   }
 
@@ -73,7 +85,7 @@ const KanbanPage: React.FC = () => {
       )
     } catch (error) {
       console.error('Error deleting task:', error)
-      // You might want to show an error notification here
+      setError(error instanceof Error ? error.message : 'Failed to delete task')
     }
   }
 
@@ -102,9 +114,35 @@ const KanbanPage: React.FC = () => {
         },
         false
       )
+      setIsFormOpen(false)
     } catch (error) {
       console.error('Error creating task:', error)
-      // You might want to show an error notification here
+      setError(error instanceof Error ? error.message : 'Failed to create task')
+    }
+  }
+
+  const handleTaskStatusChange = async (taskId: string, currentStatus: TaskStatus) => {
+    try {
+      const newStatus = currentStatus === 'DONE' ? 'TODO' : 'DONE'
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!response.ok) throw new Error('Failed to update task status')
+      const updatedTask = await response.json()
+      mutate(
+        {
+          ...data,
+          data: data.data.map((task: Task) =>
+            task.id === taskId ? updatedTask : task
+          ),
+        },
+        false
+      )
+    } catch (error) {
+      console.error('Error updating task status:', error)
+      setError(error instanceof Error ? error.message : 'Failed to update task status')
     }
   }
 
@@ -121,24 +159,19 @@ const KanbanPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-red-500 bg-red-50 p-4 rounded-lg">
-            Failed to load tasks
+            {error}
           </div>
         </div>
       </div>
     )
   }
 
-  const tasks = data?.data || []
-
-  const topRowColumns = [
-    { id: 'TODO', title: 'To Do' },
-    { id: 'IN_PROGRESS', title: 'In Progress' },
-    { id: 'DONE', title: 'Done' },
-  ]
-
-  const bottomRowColumns = [
-    { id: 'HOLD', title: 'Hold' },
-    { id: 'WAITING', title: 'Wait' },
+  const columns = [
+    { title: 'To Do', status: 'TODO' as TaskStatus },
+    { title: 'In Progress', status: 'IN_PROGRESS' as TaskStatus },
+    { title: 'Done', status: 'DONE' as TaskStatus },
+    { title: 'Hold', status: 'HOLD' as TaskStatus },
+    { title: 'Waiting', status: 'WAITING' as TaskStatus },
   ]
 
   const containerVariants = {
@@ -187,51 +220,84 @@ const KanbanPage: React.FC = () => {
           </motion.button>
         </div>
 
-        {/* Top Row - Main Task Columns */}
-        <motion.div 
-          className="grid grid-cols-3 gap-6 mb-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {topRowColumns.map((column, index) => (
-            <motion.div
-              key={column.id}
-              variants={columnVariants}
-              custom={index}
-            >
-              <KanbanColumn
-                title={column.title}
-                tasks={tasks.filter((task: Task) => task.status === column.id)}
-                status={column.id}
-                onTaskUpdate={handleTaskUpdate}
-                onTaskDelete={handleTaskDelete}
-                onTaskCreate={handleTaskCreate}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="flex justify-between items-center mb-6">
+          <motion.button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsFormOpen(true)}
+          >
+            Add Task
+          </motion.button>
+        </div>
 
-        {/* Bottom Row - Hold/Wait Columns */}
+        <AnimatePresence>
+          {isFormOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-lg p-6 w-full max-w-md"
+              >
+                <TaskForm
+                  onSubmit={handleTaskCreate}
+                  onCancel={() => setIsFormOpen(false)}
+                  initialData={{ status: 'TODO' }}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {editingTask && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-lg p-6 w-full max-w-md"
+              >
+                <TaskForm
+                  onSubmit={(updates) => handleTaskUpdate(editingTask.id, updates)}
+                  onCancel={() => setEditingTask(null)}
+                  initialData={editingTask}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div 
-          className="grid grid-cols-2 gap-6"
+          className="grid grid-cols-5 gap-6 mb-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {bottomRowColumns.map((column, index) => (
+          {columns.map((column, index) => (
             <motion.div
-              key={column.id}
+              key={column.status}
               variants={columnVariants}
               custom={index}
             >
               <KanbanColumn
                 title={column.title}
-                tasks={tasks.filter((task: Task) => task.status === column.id)}
-                status={column.id}
-                onTaskUpdate={handleTaskUpdate}
-                onTaskDelete={handleTaskDelete}
-                onTaskCreate={handleTaskCreate}
+                tasks={tasks.filter((task: Task) => task.status === column.status)}
+                status={column.status}
+                onEditTask={setEditingTask}
+                onDeleteTask={handleTaskDelete}
+                onStatusChange={handleTaskStatusChange}
               />
             </motion.div>
           ))}

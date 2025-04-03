@@ -10,9 +10,10 @@ interface TaskCardProps {
   task: Task
   onEdit: (task: Task) => void
   onDelete: (taskId: string) => void
+  onStatusChange: (taskId: string, currentStatus: Task['status']) => Promise<void>
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusChange }) => {
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       onDelete(task.id)
@@ -27,9 +28,17 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 truncate">
-            {task.title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              checked={task.status === 'DONE'}
+              onChange={() => onStatusChange(task.id, task.status)}
+            />
+            <h3 className={`font-medium text-gray-900 truncate ${task.status === 'DONE' ? 'line-through text-gray-500' : ''}`}>
+              {task.title}
+            </h3>
+          </div>
           {task.description && (
             <p className="text-sm text-gray-500 mt-1 line-clamp-2">
               {task.description}

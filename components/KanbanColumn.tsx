@@ -68,6 +68,11 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
     }
   }
 
+  const handleStatusChange = async (taskId: string, currentStatus: Task['status']) => {
+    const newStatus = currentStatus === 'DONE' ? 'TODO' : 'DONE'
+    await onTaskUpdate(taskId, { status: newStatus })
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
@@ -111,6 +116,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 task={task}
                 onEdit={handleEdit}
                 onDelete={onTaskDelete}
+                onStatusChange={handleStatusChange}
               />
             </motion.div>
           ))
