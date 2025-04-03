@@ -47,7 +47,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
     try {
       const newStatus = currentStatus === 'DONE' ? 'TODO' : 'DONE'
       const response = await fetch(`/api/tasks/${taskId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -58,8 +58,17 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
         throw new Error('Failed to update task status')
       }
 
-      // Refresh the tasks list
-      mutate()
+      // Optimistically update the UI
+      const updatedTask = await response.json()
+      mutate(
+        {
+          ...data,
+          data: data.data.map((task: Task) =>
+            task.id === taskId ? updatedTask.data : task
+          ),
+        },
+        false
+      )
     } catch (error) {
       console.error('Error updating task status:', error)
     }
@@ -125,7 +134,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
                   onChange={() => handleTaskStatusChange(task.id, task.status)}
                 />
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">
+                  <h3 className={`font-medium text-gray-900 truncate ${task.status === 'DONE' ? 'line-through text-gray-500' : ''}`}>
                     {task.title}
                   </h3>
                   {task.description && (
