@@ -69,7 +69,7 @@ export interface CreateTaskListInput {
 export interface CreateTaskInput {
   title: string
   description?: string
-  status?: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'ARCHIVED'
+  status?: 'TODO' | 'WAITING' | 'HOLD' | 'IN_PROGRESS' | 'DONE'
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate?: string
   order?: number
@@ -104,7 +104,7 @@ export interface UpdateTaskListInput {
 export interface UpdateTaskInput {
   title?: string
   description?: string
-  status?: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'ARCHIVED'
+  status?: 'TODO' | 'WAITING' | 'HOLD' | 'IN_PROGRESS' | 'DONE'
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate?: string
   order?: number
@@ -147,7 +147,7 @@ export interface TaskResponse {
     id: string
     title: string
     description?: string | null
-    status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'ARCHIVED'
+    status: 'TODO' | 'WAITING' | 'HOLD' | 'IN_PROGRESS' | 'DONE'
     priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
     dueDate: string | null
     completedAt: string | null

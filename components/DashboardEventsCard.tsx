@@ -71,6 +71,7 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">📅</span>
         <h2 className="text-lg font-semibold text-gray-900">Today's Events</h2>
+        <span className="text-sm text-gray-500">({events.length} total)</span>
       </div>
       {events.length === 0 ? (
         <p className="text-gray-500 text-sm">No events scheduled for today</p>

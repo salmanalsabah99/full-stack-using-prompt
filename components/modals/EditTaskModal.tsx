@@ -132,9 +132,10 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, task }) 
             disabled={isSubmitting}
           >
             <option value="TODO">To Do</option>
-            <option value="IN_PROGRESS">In Progress</option>
+            <option value="WAITING">Waiting</option>
+            <option value="HOLD">On Hold</option>
+            <option value="IN_PROGRESS">On Progress</option>
             <option value="DONE">Done</option>
-            <option value="ARCHIVED">Archived</option>
           </select>
         </div>
 

@@ -103,9 +103,10 @@ model Note {
 
 enum TaskStatus {
   TODO
+  WAITING
+  HOLD
   IN_PROGRESS
   DONE
-  ARCHIVED
 }
 
 enum Priority {

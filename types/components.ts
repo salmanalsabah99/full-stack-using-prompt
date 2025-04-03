@@ -6,7 +6,7 @@ export interface Task {
   id: string
   title: string
   description?: string | null
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'ARCHIVED'
+  status: 'TODO' | 'WAITING' | 'HOLD' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate?: Date | null
   completedAt?: Date | null

@@ -37,6 +37,12 @@ export default async function handler(
                 gte: startOfDay,
                 lte: endOfDay
               }
+            },
+            {
+              AND: [
+                { startTime: { lte: startOfDay } },
+                { endTime: { gte: endOfDay } }
+              ]
             }
           ]
         },
@@ -50,7 +56,7 @@ export default async function handler(
         createdAt: event.createdAt.toISOString(),
         updatedAt: event.updatedAt.toISOString(),
         startTime: event.startTime.toISOString(),
-        endTime: event.endTime?.toISOString(),
+        endTime: event.endTime?.toISOString() || null,
       }))
 
       return res.status(200).json({ data: formattedEvents })
@@ -86,7 +92,7 @@ export default async function handler(
           createdAt: event.createdAt.toISOString(),
           updatedAt: event.updatedAt.toISOString(),
           startTime: event.startTime.toISOString(),
-          endTime: event.endTime?.toISOString(),
+          endTime: event.endTime?.toISOString() || null,
         }],
       })
     } catch (error) {

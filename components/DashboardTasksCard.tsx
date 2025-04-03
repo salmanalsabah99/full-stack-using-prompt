@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import { DashboardCardProps } from '@/types/components'
 import { Trash2, Pencil } from 'lucide-react'
@@ -11,6 +12,8 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const router = useRouter()
+
   const { data: taskListData } = useSWR(
     userId ? `/api/tasklists?userId=${userId}&default=true` : null,
     fetcher
@@ -73,10 +76,14 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
   const tasks = data?.data || []
 
   return (
-    <div className="bg-blue-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02]">
+    <div 
+      className="bg-blue-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+      onClick={() => router.push('/dashboard/kanban')}
+    >
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">🧠</span>
         <h2 className="text-lg font-semibold text-gray-900">Today's Tasks</h2>
+        <span className="text-sm text-gray-500">({tasks.length} total)</span>
       </div>
       {tasks.length === 0 ? (
         <p className="text-gray-500 text-sm">No tasks for today</p>
@@ -86,6 +93,7 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
             <div
               key={task.id}
               className="flex items-center gap-3 p-3 bg-white/50 rounded-lg hover:bg-white/80 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+              onClick={(e) => e.stopPropagation()}
             >
               <input
                 type="checkbox"
