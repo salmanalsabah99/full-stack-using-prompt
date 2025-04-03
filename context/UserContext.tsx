@@ -22,6 +22,7 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     // Check localStorage for userId
@@ -30,10 +31,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       console.log('Found stored userId:', storedId)
       setUserId(storedId)
     } else {
-      console.log('No stored userId found')
+      console.log('No stored userId found, redirecting to login')
+      router.push('/login')
     }
     setIsLoading(false)
-  }, [])
+  }, [router])
 
   const handleSetUserId = (id: string | null) => {
     console.log('Setting userId:', id)
@@ -41,6 +43,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       localStorage.setItem('userId', id)
     } else {
       localStorage.removeItem('userId')
+      router.push('/login')
     }
     setUserId(id)
   }
