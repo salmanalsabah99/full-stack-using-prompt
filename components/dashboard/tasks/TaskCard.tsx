@@ -56,7 +56,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
               transition={{ duration: 0.2 }}
             >
               <Calendar className="h-4 w-4 mr-1" />
-              {format(new Date(task.dueDate), 'MMM d, yyyy')}
+              {format(new Date(task.dueDate), 'MMM d, yyyy h:mm a')}
             </motion.div>
           )}
           <motion.div 

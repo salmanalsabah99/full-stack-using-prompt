@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSWRConfig } from 'swr'
 import BaseModal from './BaseModal'
 import { Task, Priority, TaskStatus } from '@prisma/client'
+import { format } from 'date-fns'
 
 interface EditTaskModalProps {
   isOpen: boolean
@@ -19,7 +20,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, task }) 
     description: task.description || '',
     status: task.status,
     priority: task.priority,
-    dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : ''
+    dueDate: task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd'T'HH:mm") : ''
   })
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, task }) 
         description: task.description || '',
         status: task.status,
         priority: task.priority,
-        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : ''
+        dueDate: task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd'T'HH:mm") : ''
       })
     }
   }, [task])

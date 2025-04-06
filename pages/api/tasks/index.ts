@@ -86,20 +86,10 @@ export default async function handler(
           tomorrow: tomorrow.toISOString()
         })
 
-        where.OR = [
-          {
-            dueDate: {
-              gte: today,
-              lt: tomorrow
-            }
-          },
-          {
-            createdAt: {
-              gte: today,
-              lt: tomorrow
-            }
-          }
-        ]
+        where.dueDate = {
+          gte: today,
+          lt: tomorrow
+        }
       }
 
       const tasks = await prisma.task.findMany({

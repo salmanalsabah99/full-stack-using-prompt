@@ -7,6 +7,7 @@ import { DashboardCardProps } from '@/types/components'
 import { Trash2, Pencil } from 'lucide-react'
 import EditTaskModal from '@/components/modals/EditTaskModal'
 import { Task, TaskStatus, Priority } from '@prisma/client'
+import { format } from 'date-fns'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -140,6 +141,11 @@ const DashboardTasksCard: React.FC<DashboardCardProps> = ({ userId }) => {
                   {task.description && (
                     <p className="text-sm text-gray-500 truncate">
                       {task.description}
+                    </p>
+                  )}
+                  {task.dueDate && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Due: {format(new Date(task.dueDate), 'MMM d, yyyy h:mm a')}
                     </p>
                   )}
                 </div>

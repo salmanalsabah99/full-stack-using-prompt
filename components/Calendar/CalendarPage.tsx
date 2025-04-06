@@ -9,6 +9,7 @@ import { Task, Event } from '@prisma/client';
 import { formatFullDate, formatDateForApi, parseDate } from '@/lib/date';
 import CreateEventModal from '../modals/CreateEventModal';
 import EditEventModal from '../modals/EditEventModal';
+import EditTaskModal from '../modals/EditTaskModal';
 import { Plus } from 'lucide-react';
 
 // Placeholder data for development
@@ -34,6 +35,7 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const { userId } = useUser();
 
   useEffect(() => {
@@ -119,21 +121,40 @@ export default function CalendarPage() {
   };
 
   const handleEventClick = (event: CalendarEvent) => {
-    // Find the full event object from the events array
-    const fullEvent = events.find(e => e.id === event.id);
-    if (fullEvent) {
-      setEditingEvent({
-        id: fullEvent.id,
-        title: fullEvent.title,
-        description: fullEvent.description || '',
-        startTime: fullEvent.startTime,
-        endTime: fullEvent.endTime || null,
-        location: fullEvent.location || '',
-        userId: userId || '',
+    if (event.type === 'task') {
+      // Handle task click
+      const taskStartTime = new Date(event.startTime);
+      setEditingTask({
+        id: event.id,
+        title: event.title,
+        description: event.description || '',
+        status: 'TODO', // Default status
+        priority: 'MEDIUM', // Default priority
+        dueDate: taskStartTime, // Use the exact start time from the event
+        completedAt: null,
+        order: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        taskId: null
+        userId: userId || '',
+        taskListId: '' // This will be updated when the task is loaded
       });
+    } else {
+      // Handle event click
+      const fullEvent = events.find(e => e.id === event.id);
+      if (fullEvent) {
+        setEditingEvent({
+          id: fullEvent.id,
+          title: fullEvent.title,
+          description: fullEvent.description || '',
+          startTime: fullEvent.startTime,
+          endTime: fullEvent.endTime || null,
+          location: fullEvent.location || '',
+          userId: userId || '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          taskId: null
+        });
+      }
     }
   };
 
@@ -168,6 +189,14 @@ export default function CalendarPage() {
           isOpen={!!editingEvent}
           onClose={() => setEditingEvent(null)}
           event={editingEvent}
+        />
+      )}
+
+      {editingTask && (
+        <EditTaskModal
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          task={editingTask}
         />
       )}
     </div>

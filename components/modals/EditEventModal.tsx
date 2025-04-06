@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSWRConfig } from 'swr'
 import BaseModal from './BaseModal'
 import { Event } from '@prisma/client'
+import { format } from 'date-fns'
 
 interface EditEventModalProps {
   isOpen: boolean
@@ -17,8 +18,8 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
   const [formData, setFormData] = useState({
     title: event.title,
     description: event.description || '',
-    startTime: new Date(event.startTime).toISOString().slice(0, 16),
-    endTime: event.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : '',
+    startTime: format(new Date(event.startTime), "yyyy-MM-dd'T'HH:mm"),
+    endTime: event.endTime ? format(new Date(event.endTime), "yyyy-MM-dd'T'HH:mm") : '',
     location: event.location || ''
   })
 
@@ -27,8 +28,8 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
       setFormData({
         title: event.title,
         description: event.description || '',
-        startTime: new Date(event.startTime).toISOString().slice(0, 16),
-        endTime: event.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : '',
+        startTime: format(new Date(event.startTime), "yyyy-MM-dd'T'HH:mm"),
+        endTime: event.endTime ? format(new Date(event.endTime), "yyyy-MM-dd'T'HH:mm") : '',
         location: event.location || ''
       })
     }
