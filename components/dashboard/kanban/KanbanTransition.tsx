@@ -47,6 +47,64 @@ const KanbanTransition: React.FC<KanbanTransitionProps> = ({
     }
   }
 
+  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update task')
+      }
+
+      const updatedTask = await response.json()
+      setTasks(tasks.map(task => task.id === taskId ? updatedTask : task))
+    } catch (error) {
+      console.error('Error updating task:', error)
+    }
+  }
+
+  const handleTaskDelete = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete task')
+      }
+
+      setTasks(tasks.filter(task => task.id !== taskId))
+    } catch (error) {
+      console.error('Error deleting task:', error)
+    }
+  }
+
+  const handleTaskCreate = async (taskData: Partial<Task>) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...taskData, userId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create task')
+      }
+
+      const newTask = await response.json()
+      setTasks([...tasks, newTask])
+    } catch (error) {
+      console.error('Error creating task:', error)
+    }
+  }
+
   return (
     <AnimatePresence>
       {isExpanded && (
@@ -77,6 +135,9 @@ const KanbanTransition: React.FC<KanbanTransitionProps> = ({
                     title={column.title}
                     tasks={tasks.filter((task) => task.status === column.id)}
                     status={column.id}
+                    onTaskUpdate={handleTaskUpdate}
+                    onTaskDelete={handleTaskDelete}
+                    onTaskCreate={handleTaskCreate}
                   />
                 ))}
               </div>

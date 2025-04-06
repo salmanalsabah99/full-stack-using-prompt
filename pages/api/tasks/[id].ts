@@ -86,7 +86,20 @@ export default async function handler(
 
       return res.status(200).json({
         success: true,
-        data: null
+        data: {
+          id,
+          title: '',
+          description: null,
+          status: 'TODO',
+          priority: 'LOW',
+          dueDate: null,
+          completedAt: null,
+          order: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: '',
+          taskListId: ''
+        }
       })
     } catch (error) {
       console.error('Error deleting task:', error)

@@ -1,23 +1,36 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, CheckSquare, Calendar, StickyNote } from 'lucide-react'
-import CreateTaskModal from './modals/CreateTaskModal'
-import CreateEventModal from './modals/CreateEventModal'
-import CreateNoteModal from './modals/CreateNoteModal'
+import { useRouter } from 'next/navigation'
+import { useUser } from '@/context/UserContext'
+import CreateTaskModal from '@/components/modals/CreateTaskModal'
+import CreateEventModal from '@/components/modals/CreateEventModal'
+import CreateNoteModal from '@/components/modals/CreateNoteModal'
 
 const FloatingActionButton: React.FC = () => {
+  const { userId, isLoading } = useUser()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [activeModal, setActiveModal] = useState<'task' | 'event' | 'note' | null>(null)
 
   const handleOpenModal = (type: 'task' | 'event' | 'note') => {
+    if (!userId) {
+      router.push('/login')
+      return
+    }
+
     setActiveModal(type)
     setIsOpen(false)
   }
 
   const handleCloseModal = () => {
     setActiveModal(null)
+  }
+
+  if (isLoading || !userId) {
+    return null
   }
 
   return (
@@ -83,13 +96,13 @@ const FloatingActionButton: React.FC = () => {
       </div>
 
       <AnimatePresence>
-        {activeModal === 'task' && (
+        {activeModal === 'task' && userId && (
           <CreateTaskModal isOpen={true} onClose={handleCloseModal} />
         )}
-        {activeModal === 'event' && (
+        {activeModal === 'event' && userId && (
           <CreateEventModal isOpen={true} onClose={handleCloseModal} />
         )}
-        {activeModal === 'note' && (
+        {activeModal === 'note' && userId && (
           <CreateNoteModal isOpen={true} onClose={handleCloseModal} />
         )}
       </AnimatePresence>

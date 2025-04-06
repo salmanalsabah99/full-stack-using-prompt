@@ -13,6 +13,14 @@ interface TaskFormProps {
   initialStatus?: TaskStatus
 }
 
+interface TaskFormData {
+  title: string
+  description: string
+  status: TaskStatus
+  priority: Priority
+  dueDate: Date | null
+}
+
 const TaskForm: React.FC<TaskFormProps> = ({
   task,
   isOpen,
@@ -20,7 +28,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
   onSubmit,
   initialStatus
 }) => {
-  const [formData, setFormData] = useState<Partial<Task>>({
+  const [formData, setFormData] = useState<TaskFormData>({
     title: '',
     description: '',
     status: initialStatus || 'TODO',

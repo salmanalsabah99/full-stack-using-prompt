@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@/context/UserContext'
 import useSWR from 'swr'
 import { Task } from '@prisma/client'
-import KanbanColumn from '@/components/KanbanColumn'
+import KanbanColumn from '@/components/dashboard/kanban/KanbanColumn'
 import { motion } from 'framer-motion'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())

@@ -7,7 +7,7 @@ import { TaskList as TaskListType } from '@prisma/client'
 import { format } from 'date-fns'
 import { Calendar, Clock, CheckCircle2, Circle, AlertCircle, Archive, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import EditTaskModal from './modals/EditTaskModal'
+import EditTaskModal from '@/components/modals/EditTaskModal'
 
 interface Task {
   id: string
@@ -131,7 +131,7 @@ export default function TaskList() {
           className={cn(
             "bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/50 hover:-translate-y-0.5",
             task.status === 'DONE' && "opacity-75",
-            task.status === 'ARCHIVED' && "opacity-50"
+            task.status === 'HOLD' && "opacity-50"
           )}
         >
           <div className="flex items-start justify-between">
@@ -143,8 +143,9 @@ export default function TaskList() {
                     const statusTransitions: Record<TaskStatus, TaskStatus> = {
                       'TODO': 'IN_PROGRESS',
                       'IN_PROGRESS': 'DONE',
-                      'DONE': 'ARCHIVED',
-                      'ARCHIVED': 'TODO'
+                      'DONE': 'TODO',
+                      'HOLD': 'TODO',
+                      'WAITING': 'IN_PROGRESS'
                     }
 
                     const newStatus = statusTransitions[task.status]
@@ -175,7 +176,7 @@ export default function TaskList() {
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                 ) : task.status === 'IN_PROGRESS' ? (
                   <AlertCircle className="h-5 w-5 text-yellow-500" />
-                ) : task.status === 'ARCHIVED' ? (
+                ) : task.status === 'HOLD' ? (
                   <Archive className="h-5 w-5 text-gray-500" />
                 ) : (
                   <Circle className="h-5 w-5" />
@@ -203,26 +204,13 @@ export default function TaskList() {
                   'bg-green-100 text-green-800': task.priority === 'LOW',
                 }
               )}>
-                {task.priority}
-              </div>
-              <div className={cn(
-                'px-2 py-1 text-xs font-medium rounded-full',
-                {
-                  'bg-gray-100 text-gray-800': task.status === 'TODO',
-                  'bg-blue-100 text-blue-800': task.status === 'IN_PROGRESS',
-                  'bg-green-100 text-green-800': task.status === 'DONE',
-                  'bg-gray-200 text-gray-600': task.status === 'ARCHIVED',
-                }
-              )}>
-                {task.status}
+                {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
               </div>
               <button
                 onClick={() => setEditingTask(task)}
-                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
-                aria-label="Edit task"
-                title="Edit task"
+                className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
               >
-                <Pencil size={16} />
+                <Pencil className="h-4 w-4" />
               </button>
             </div>
           </div>

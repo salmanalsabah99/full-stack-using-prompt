@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import { DashboardCardProps } from '@/types/components'
 import { Trash2, Pencil } from 'lucide-react'
-import EditTaskModal from './modals/EditTaskModal'
+import EditTaskModal from '@/components/modals/EditTaskModal'
 import { Task, TaskStatus, Priority } from '@prisma/client'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())

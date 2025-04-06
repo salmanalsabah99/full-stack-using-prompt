@@ -58,27 +58,18 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose }) 
       return
     }
 
-    console.log('Submitting new EVENT with userId:', userId)
-    console.log('Payload:', {
-      userId,
-      title: formData.title,
-      startTime,
-      endTime,
-      location: formData.location,
-    })
-
     try {
       const response = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
-          userId,
           title: formData.title,
-          startTime,
-          endTime,
-          location: formData.location,
+          startTime: startTime.toISOString(),
+          endTime: endTime?.toISOString(),
+          location: formData.location || null,
         }),
       })
 
@@ -86,6 +77,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose }) 
 
       if (!response.ok) {
         console.error('API Error:', data)
+        if (response.status === 401) {
+          setError('Your session has expired. Please log in again.')
+          return
+        }
         throw new Error(data.error || 'Failed to create event')
       }
 

@@ -1,39 +1,43 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../lib/prisma'
 import { CreateNoteInput, NotesResponse, NoteResponse } from '../../../types'
+import { verifyAuth, JWTPayload } from '../../../lib/auth'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<NotesResponse | NoteResponse>
 ) {
+  const authResult = verifyAuth(req, res)
+  
+  if (!authResult || 'error' in authResult) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized'
+    })
+  }
+
+  const userId = (authResult as JWTPayload).userId
+
   if (req.method === 'GET') {
     try {
-      const { userId, taskId, eventId } = req.query
-
-      if (!userId || typeof userId !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: 'userId is required'
-        })
-      }
-
-      // Build where clause based on filters
-      const where = {
-        userId,
-        ...(taskId && typeof taskId === 'string' ? { taskId } : {}),
-        ...(eventId && typeof eventId === 'string' ? { eventId } : {})
-      }
-
       const notes = await prisma.note.findMany({
-        where,
-        orderBy: {
-          createdAt: 'desc'
+        where: {
+          userId: userId
         }
       })
 
       return res.status(200).json({
         success: true,
-        data: notes
+        data: notes.map(note => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          createdAt: note.createdAt.toISOString(),
+          updatedAt: note.updatedAt.toISOString(),
+          userId: note.userId,
+          taskId: note.taskId,
+          eventId: note.eventId
+        }))
       })
     } catch (error) {
       console.error('Error fetching notes:', error)
@@ -49,16 +53,16 @@ export default async function handler(
       const input: CreateNoteInput = req.body
 
       // Validate required fields
-      if (!input.title || !input.content || !input.userId) {
+      if (!input.title || !input.content) {
         return res.status(400).json({
           success: false,
-          error: 'Title, content, and userId are required'
+          error: 'Title and content are required'
         })
       }
 
       // Verify user exists
       const user = await prisma.user.findUnique({
-        where: { id: input.userId }
+        where: { id: userId }
       })
 
       if (!user) {
@@ -73,7 +77,7 @@ export default async function handler(
         const task = await prisma.task.findFirst({
           where: {
             id: input.taskId,
-            userId: input.userId
+            userId: userId
           }
         })
 
@@ -90,7 +94,7 @@ export default async function handler(
         const event = await prisma.event.findFirst({
           where: {
             id: input.eventId,
-            userId: input.userId
+            userId: userId
           }
         })
 
@@ -102,13 +106,29 @@ export default async function handler(
         }
       }
 
+      // Create note
       const note = await prisma.note.create({
-        data: input
+        data: {
+          title: input.title,
+          content: input.content,
+          userId: userId,
+          taskId: input.taskId,
+          eventId: input.eventId
+        }
       })
 
       return res.status(201).json({
         success: true,
-        data: note
+        data: {
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          createdAt: note.createdAt.toISOString(),
+          updatedAt: note.updatedAt.toISOString(),
+          userId: note.userId,
+          taskId: note.taskId,
+          eventId: note.eventId
+        }
       })
     } catch (error) {
       console.error('Error creating note:', error)

@@ -22,15 +22,13 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    // Check localStorage for userId
-    const storedId = localStorage.getItem('userId')
-    if (storedId) {
-      console.log('Found stored userId:', storedId)
-      setUserId(storedId)
-    } else {
-      console.log('No stored userId found')
+    // Check for userId in localStorage on initial load
+    const storedUserId = localStorage.getItem('userId')
+    if (storedUserId) {
+      setUserId(storedUserId)
     }
     setIsLoading(false)
   }, [])

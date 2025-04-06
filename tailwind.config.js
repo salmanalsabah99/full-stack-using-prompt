@@ -13,6 +13,7 @@ module.exports = {
       animation: {
         'fade-in': 'fade-in 0.5s ease-out',
         'slide-up': 'slide-up 0.5s ease-out',
+        'slide-in-right': 'slide-in-right 0.5s ease-out',
       },
       keyframes: {
         'fade-in': {
@@ -22,6 +23,10 @@ module.exports = {
         'slide-up': {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'slide-in-right': {
+          '0%': { transform: 'translateX(-20px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
         },
       },
     },

@@ -5,7 +5,7 @@ import useSWR from 'swr'
 import { DashboardCardProps } from '@/types/components'
 import { Note } from '@prisma/client'
 import { Trash2, Pencil } from 'lucide-react'
-import EditNoteModal from './modals/EditNoteModal'
+import EditNoteModal from '@/components/modals/EditNoteModal'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 

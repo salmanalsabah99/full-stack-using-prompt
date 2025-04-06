@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react'
 import { Task } from '@prisma/client'
-import TaskCard from './TaskCard'
-import TaskForm from './TaskForm'
+import TaskCard from '../tasks/TaskCard'
+import TaskForm from '../tasks/TaskForm'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 

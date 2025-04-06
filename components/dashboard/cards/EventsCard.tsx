@@ -3,15 +3,17 @@
 import React, { useState } from 'react'
 import useSWR from 'swr'
 import { format } from 'date-fns'
+import { useRouter } from 'next/navigation'
 import { DashboardCardProps } from '@/types/components'
 import { Event } from '@prisma/client'
 import { Trash2, Pencil } from 'lucide-react'
-import EditEventModal from './modals/EditEventModal'
+import EditEventModal from '@/components/modals/EditEventModal'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
   const today = format(new Date(), 'yyyy-MM-dd')
+  const router = useRouter()
   const { data, error, isLoading, mutate } = useSWR(
     userId ? `/api/events?userId=${userId}&date=${today}` : null,
     fetcher
@@ -32,6 +34,15 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
       mutate()
     } catch (error) {
       console.error('Error deleting event:', error)
+    }
+  }
+
+  const handleEventClick = async (event: Event) => {
+    try {
+      console.log('Event clicked, navigating to calendar:', event)
+      await router.push('/calendar')
+    } catch (error) {
+      console.error('Navigation error:', error)
     }
   }
 
@@ -69,11 +80,16 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
 
   return (
     <>
-      <div className="bg-green-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02]">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-2xl">📅</span>
-          <h2 className="text-lg font-semibold text-gray-900">Today's Events</h2>
-          <span className="text-sm text-gray-500">({events.length} total)</span>
+      <div 
+        className="bg-green-50 rounded-xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+        onClick={() => router.push('/calendar')}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📅</span>
+            <h2 className="text-lg font-semibold text-gray-900">Today's Events</h2>
+            <span className="text-sm text-gray-500">({events.length} total)</span>
+          </div>
         </div>
         {events.length === 0 ? (
           <p className="text-gray-500 text-sm">No events scheduled for today</p>
@@ -100,13 +116,19 @@ const DashboardEventsCard: React.FC<DashboardCardProps> = ({ userId }) => {
                     {format(new Date(event.endTime || event.startTime), 'h:mm a')}
                   </span>
                   <button
-                    onClick={() => setEditingEvent(event)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingEvent(event);
+                    }}
                     className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteEvent(event.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteEvent(event.id);
+                    }}
                     className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />

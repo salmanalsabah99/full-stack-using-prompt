@@ -68,7 +68,16 @@ export default async function handler(
 
       return res.status(200).json({
         success: true,
-        data: null
+        data: {
+          id,
+          title: '',
+          content: '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: '',
+          taskId: null,
+          eventId: null
+        }
       })
     } catch (error) {
       console.error('Error deleting note:', error)

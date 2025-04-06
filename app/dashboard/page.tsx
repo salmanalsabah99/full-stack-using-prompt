@@ -3,11 +3,11 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/context/UserContext'
-import DashboardTasksCard from '@/components/DashboardTasksCard'
-import DashboardNotesCard from '@/components/DashboardNotesCard'
-import DashboardEventsCard from '@/components/DashboardEventsCard'
-import OrbitPriorityCard from '@/components/dashboard/OrbitPriorityCard'
-import FloatingActionButton from '@/components/FloatingActionButton'
+import TasksCard from '@/components/dashboard/cards/TasksCard'
+import NotesCard from '@/components/dashboard/cards/NotesCard'
+import EventsCard from '@/components/dashboard/cards/EventsCard'
+import OrbitPriorityCard from '@/components/dashboard/cards/OrbitPriorityCard'
+import FloatingActionButton from '@/components/common/FloatingActionButton'
 import { motion } from 'framer-motion'
 
 const DashboardPage: React.FC = () => {
@@ -82,13 +82,13 @@ const DashboardPage: React.FC = () => {
             variants={containerVariants}
           >
             <motion.div variants={cardVariants}>
-              <DashboardTasksCard userId={userId} />
+              <TasksCard userId={userId} />
             </motion.div>
             <motion.div variants={cardVariants}>
-              <DashboardEventsCard userId={userId} />
+              <EventsCard userId={userId} />
             </motion.div>
             <motion.div variants={cardVariants}>
-              <DashboardNotesCard userId={userId} />
+              <NotesCard userId={userId} />
             </motion.div>
           </motion.div>
           <motion.div 
