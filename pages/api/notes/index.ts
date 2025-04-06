@@ -7,7 +7,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<NotesResponse | NoteResponse>
 ) {
-  const authResult = verifyAuth(req, res)
+  const authResult = await verifyAuth(req, res)
   
   if (!authResult || 'error' in authResult) {
     return res.status(401).json({
@@ -16,7 +16,7 @@ export default async function handler(
     })
   }
 
-  const userId = (authResult as JWTPayload).userId
+  const userId = authResult.userId
 
   if (req.method === 'GET') {
     try {
