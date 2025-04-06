@@ -38,10 +38,10 @@ export default function TimeGridPanel({ events, selectedDate, onEventClick, onCr
 
   // Calculate event positions and spans
   const processedEvents = dayEvents.map(event => {
-    const startDate = parseDate(event.startTime);
-    const endDate = parseDate(event.endTime);
+    const startDate = new Date(event.startTime);
+    const endDate = event.endTime ? new Date(event.endTime) : null;
     
-    if (!startDate) {
+    if (!startDate || isNaN(startDate.getTime())) {
       console.error('Invalid start time for event:', event);
       return null;
     }

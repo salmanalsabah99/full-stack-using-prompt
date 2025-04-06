@@ -43,9 +43,16 @@ export default function CalendarPage() {
         const tasksResponse = await fetch(`/api/tasks?userId=${userId}`);
         const tasksData = await tasksResponse.json();
         
-        // Fetch events
-        const formattedDate = formatDateForApi(selectedDate);
-        const eventsResponse = await fetch(`/api/events?date=${formattedDate}`);
+        // Create start and end of the selected date
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        // Fetch events with date range
+        const eventsResponse = await fetch(
+          `/api/events?startDate=${formatDateForApi(startOfDay)}&endDate=${formatDateForApi(endOfDay)}`
+        );
         const eventsData = await eventsResponse.json();
 
         let calendarEvents: CalendarEvent[] = [];
