@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CalendarEvent, CalendarViewProps } from '@/types/calendar';
 import TimeGridPanel from './TimeGridPanel';
 import CalendarSidebar from './CalendarSidebar';
+import { useUser } from '@/context/UserContext';
+import { Task, Event } from '@prisma/client';
+import { formatFullDate, formatDateForApi, parseDate } from '@/lib/date';
 
 // Placeholder data for development
 const mockEvents: CalendarEvent[] = [
@@ -25,7 +28,79 @@ const mockEvents: CalendarEvent[] = [
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [events, setEvents] = useState<CalendarEvent[]>(mockEvents);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const { userId } = useUser();
+
+  useEffect(() => {
+    const fetchCalendarData = async () => {
+      try {
+        // Fetch tasks
+        const tasksResponse = await fetch(`/api/tasks?userId=${userId}`);
+        const tasksData = await tasksResponse.json();
+        
+        // Fetch events
+        const formattedDate = formatDateForApi(selectedDate);
+        const eventsResponse = await fetch(`/api/events?date=${formattedDate}`);
+        const eventsData = await eventsResponse.json();
+
+        let calendarEvents: CalendarEvent[] = [];
+
+        // Transform tasks into calendar events
+        if (tasksData.success && tasksData.data) {
+          const taskEvents = tasksData.data
+            .filter((task: Task) => task.dueDate)
+            .map((task: Task) => ({
+              id: task.id,
+              title: task.title,
+              startTime: task.dueDate!,
+              endTime: new Date(new Date(task.dueDate!).getTime() + 60 * 60 * 1000),
+              description: task.description || undefined,
+              color: getTaskColor(task.priority),
+              type: 'task'
+            }));
+          calendarEvents = [...calendarEvents, ...taskEvents];
+        }
+
+        // Transform events into calendar events
+        if (eventsData.data) {
+          const calendarEventsFromEvents = eventsData.data.map((event: Event) => ({
+            id: event.id,
+            title: event.title,
+            startTime: event.startTime,
+            endTime: event.endTime || new Date(new Date(event.startTime).getTime() + 60 * 60 * 1000),
+            description: event.description || undefined,
+            color: '#E6E6FA', // Default purple for events
+            type: 'event',
+            location: event.location
+          }));
+          calendarEvents = [...calendarEvents, ...calendarEventsFromEvents];
+        }
+
+        setEvents(calendarEvents);
+      } catch (error) {
+        console.error('Error fetching calendar data:', error);
+      }
+    };
+
+    if (userId) {
+      fetchCalendarData();
+    }
+  }, [userId, selectedDate]);
+
+  const getTaskColor = (priority: string) => {
+    switch (priority) {
+      case 'HIGH':
+        return '#FFE4E1'; // Light red
+      case 'MEDIUM':
+        return '#E6E6FA'; // Light purple
+      case 'LOW':
+        return '#E0FFFF'; // Light cyan
+      case 'URGENT':
+        return '#FFB6C1'; // Light pink
+      default:
+        return '#E6E6FA'; // Default light purple
+    }
+  };
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);

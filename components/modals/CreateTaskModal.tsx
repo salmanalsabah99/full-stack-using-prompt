@@ -116,7 +116,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
       title: formData.title,
       priority: formData.priority,
       taskListId: formData.taskListId,
-      dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
+      dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
       status: formData.status
     })
 
@@ -131,7 +131,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
           title: formData.title,
           priority: formData.priority,
           taskListId: formData.taskListId,
-          dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
+          dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
           status: formData.status
         }),
       })
@@ -238,7 +238,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
             Due Date
           </label>
           <input
-            type="date"
+            type="datetime-local"
             id="dueDate"
             value={formData.dueDate}
             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}

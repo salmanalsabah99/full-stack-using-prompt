@@ -8,8 +8,6 @@ export default function AgendaList({ events, selectedDate, onEventClick }: Agend
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Agenda</h3>
-      
       {dayEvents.length === 0 ? (
         <div className="text-gray-500 text-sm italic">
           No events scheduled for today
@@ -27,9 +25,12 @@ export default function AgendaList({ events, selectedDate, onEventClick }: Agend
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="text-sm font-medium text-gray-800">
-                      {event.title}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${event.type === 'task' ? 'bg-blue-500' : 'bg-purple-500'}`} />
+                      <h4 className="text-sm font-medium text-gray-800">
+                        {event.title}
+                      </h4>
+                    </div>
                     {event.description && (
                       <p className="text-xs text-gray-600 mt-1">
                         {event.description}

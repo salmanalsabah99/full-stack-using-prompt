@@ -41,7 +41,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, event 
 
     try {
       const response = await fetch(`/api/events/${event.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
