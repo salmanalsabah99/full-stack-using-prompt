@@ -2,10 +2,39 @@
 
 import { TimeGridProps } from '@/types/calendar';
 import { formatTime, generateTimeSlots, getDayEvents, parseDate } from '@/lib/date';
+import { Plus } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
-export default function TimeGridPanel({ events, selectedDate, onEventClick }: TimeGridProps) {
+export default function TimeGridPanel({ events, selectedDate, onEventClick, onCreateEvent }: TimeGridProps) {
   const timeSlots = generateTimeSlots();
   const dayEvents = getDayEvents(events, selectedDate);
+  const timeSlotsRef = useRef<HTMLDivElement>(null);
+  const eventsGridRef = useRef<HTMLDivElement>(null);
+
+  // Sync scrolling between time slots and events grid
+  useEffect(() => {
+    const timeSlotsContainer = timeSlotsRef.current;
+    const eventsGrid = eventsGridRef.current;
+
+    if (!timeSlotsContainer || !eventsGrid) return;
+
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLDivElement;
+      if (target === timeSlotsContainer) {
+        eventsGrid.scrollTop = target.scrollTop;
+      } else {
+        timeSlotsContainer.scrollTop = target.scrollTop;
+      }
+    };
+
+    timeSlotsContainer.addEventListener('scroll', handleScroll);
+    eventsGrid.addEventListener('scroll', handleScroll);
+
+    return () => {
+      timeSlotsContainer.removeEventListener('scroll', handleScroll);
+      eventsGrid.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // Calculate event positions and spans
   const processedEvents = dayEvents.map(event => {
@@ -51,7 +80,7 @@ export default function TimeGridPanel({ events, selectedDate, onEventClick }: Ti
 
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-gray-800">
           {selectedDate.toLocaleDateString('en-US', { 
             weekday: 'long',
@@ -59,11 +88,20 @@ export default function TimeGridPanel({ events, selectedDate, onEventClick }: Ti
             day: 'numeric'
           })}
         </h2>
+        {onCreateEvent && (
+          <button
+            onClick={onCreateEvent}
+            className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+            title="Add Event"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        )}
       </div>
       
       <div className="flex-1 relative bg-white/50 rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] overflow-hidden">
         {/* Time slots */}
-        <div className="absolute left-0 w-20">
+        <div ref={timeSlotsRef} className="absolute left-0 w-20 overflow-y-auto scrollbar-hide" style={{ height: 'calc(100% - 24px)' }}>
           {timeSlots.map((hour) => (
             <div
               key={hour}
@@ -75,7 +113,7 @@ export default function TimeGridPanel({ events, selectedDate, onEventClick }: Ti
         </div>
 
         {/* Events grid */}
-        <div className="ml-20 border-l border-gray-200 h-full overflow-y-auto">
+        <div ref={eventsGridRef} className="ml-20 border-l border-gray-200 h-full overflow-y-auto scrollbar-hide" id="events-grid">
           {timeSlots.map((hour) => (
             <div
               key={hour}

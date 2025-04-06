@@ -15,15 +15,15 @@ export default async function handler(
 
     if (req.method === 'GET') {
       try {
-        const { date } = req.query
+        const { startDate, endDate } = req.query
         const today = new Date()
         today.setHours(0, 0, 0, 0)
 
-        // Use provided date or default to today
-        const startOfDay = date ? new Date(date as string) : today
-        startOfDay.setHours(0, 0, 0, 0)
-        const endOfDay = new Date(startOfDay)
-        endOfDay.setHours(23, 59, 59, 999)
+        // Use provided date range or default to today
+        const startOfRange = startDate ? new Date(startDate as string) : today
+        startOfRange.setHours(0, 0, 0, 0)
+        const endOfRange = endDate ? new Date(endDate as string) : today
+        endOfRange.setHours(23, 59, 59, 999)
 
         const events = await prisma.event.findMany({
           where: {
@@ -31,20 +31,20 @@ export default async function handler(
             OR: [
               {
                 startTime: {
-                  gte: startOfDay,
-                  lte: endOfDay
+                  gte: startOfRange,
+                  lte: endOfRange
                 }
               },
               {
                 endTime: {
-                  gte: startOfDay,
-                  lte: endOfDay
+                  gte: startOfRange,
+                  lte: endOfRange
                 }
               },
               {
                 AND: [
-                  { startTime: { lte: startOfDay } },
-                  { endTime: { gte: endOfDay } }
+                  { startTime: { lte: startOfRange } },
+                  { endTime: { gte: endOfRange } }
                 ]
               }
             ]

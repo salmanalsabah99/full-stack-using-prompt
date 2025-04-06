@@ -33,14 +33,48 @@ export const formatMonthYear = (date: Date | string): string => {
 };
 
 /**
- * Get events for a specific day
+ * Get events for a specific day, including recurrent events
  */
 export const getDayEvents = (events: any[], date: Date) => {
   return events.filter(event => {
-    const eventDate = typeof event.startTime === 'string' 
+    const eventStart = typeof event.startTime === 'string' 
       ? parseISO(event.startTime) 
       : new Date(event.startTime);
-    return dateFnsIsSameDay(eventDate, date);
+    const eventEnd = event.endTime 
+      ? (typeof event.endTime === 'string' 
+          ? parseISO(event.endTime) 
+          : new Date(event.endTime))
+      : eventStart;
+
+    // Check if the date falls within the event's date range
+    return (
+      dateFnsIsSameDay(eventStart, date) || // Event starts on this day
+      dateFnsIsSameDay(eventEnd, date) || // Event ends on this day
+      (eventStart < date && eventEnd > date) // Event spans this day
+    );
+  });
+};
+
+/**
+ * Get events for a date range
+ */
+export const getDateRangeEvents = (events: any[], startDate: Date, endDate: Date) => {
+  return events.filter(event => {
+    const eventStart = typeof event.startTime === 'string' 
+      ? parseISO(event.startTime) 
+      : new Date(event.startTime);
+    const eventEnd = event.endTime 
+      ? (typeof event.endTime === 'string' 
+          ? parseISO(event.endTime) 
+          : new Date(event.endTime))
+      : eventStart;
+
+    // Check if the event overlaps with the date range
+    return (
+      (eventStart >= startDate && eventStart <= endDate) || // Event starts within range
+      (eventEnd >= startDate && eventEnd <= endDate) || // Event ends within range
+      (eventStart <= startDate && eventEnd >= endDate) // Event spans the entire range
+    );
   });
 };
 

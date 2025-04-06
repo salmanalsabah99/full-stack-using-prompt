@@ -5,6 +5,8 @@ export interface CalendarEvent {
   endTime: Date;
   color?: string;
   description?: string;
+  location?: string;
+  type?: 'task' | 'event';
 }
 
 export interface TimeSlot {
@@ -34,6 +36,7 @@ export interface TimeGridProps {
   events: CalendarEvent[];
   selectedDate: Date;
   onEventClick?: (event: CalendarEvent) => void;
+  onCreateEvent?: () => void;
 }
 
 export interface CalendarSidebarProps {

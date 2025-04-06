@@ -7,6 +7,9 @@ import CalendarSidebar from './CalendarSidebar';
 import { useUser } from '@/context/UserContext';
 import { Task, Event } from '@prisma/client';
 import { formatFullDate, formatDateForApi, parseDate } from '@/lib/date';
+import CreateEventModal from '../modals/CreateEventModal';
+import EditEventModal from '../modals/EditEventModal';
+import { Plus } from 'lucide-react';
 
 // Placeholder data for development
 const mockEvents: CalendarEvent[] = [
@@ -29,6 +32,8 @@ const mockEvents: CalendarEvent[] = [
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const { userId } = useUser();
 
   useEffect(() => {
@@ -107,8 +112,22 @@ export default function CalendarPage() {
   };
 
   const handleEventClick = (event: CalendarEvent) => {
-    console.log('Event clicked:', event);
-    // TODO: Implement event click handler
+    // Find the full event object from the events array
+    const fullEvent = events.find(e => e.id === event.id);
+    if (fullEvent) {
+      setEditingEvent({
+        id: fullEvent.id,
+        title: fullEvent.title,
+        description: fullEvent.description || '',
+        startTime: fullEvent.startTime,
+        endTime: fullEvent.endTime || null,
+        location: fullEvent.location || '',
+        userId: userId || '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        taskId: null
+      });
+    }
   };
 
   return (
@@ -118,6 +137,7 @@ export default function CalendarPage() {
           events={events}
           selectedDate={selectedDate}
           onEventClick={handleEventClick}
+          onCreateEvent={() => setIsCreateModalOpen(true)}
         />
       </div>
       <div className="w-80 border-l border-gray-200 bg-green-50 overflow-y-auto">
@@ -128,6 +148,21 @@ export default function CalendarPage() {
           onEventClick={handleEventClick}
         />
       </div>
+
+      {/* Create Event Modal */}
+      <CreateEventModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {/* Edit Event Modal */}
+      {editingEvent && (
+        <EditEventModal
+          isOpen={!!editingEvent}
+          onClose={() => setEditingEvent(null)}
+          event={editingEvent}
+        />
+      )}
     </div>
   );
 } 
