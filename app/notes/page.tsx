@@ -10,6 +10,8 @@ import NoteCard from '@/components/notes/NoteCard'
 import CreateNoteModal from '@/components/modals/CreateNoteModal'
 import EditNoteModal from '@/components/modals/EditNoteModal'
 import CategoryModal from '@/components/modals/CategoryModal'
+import { motion } from 'framer-motion'
+import PageTransitionWrapper from '@/components/common/PageTransitionWrapper'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -103,59 +105,94 @@ export default function NotesPage() {
     setEditingCategory(null)
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      },
+    },
+  }
+
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={setSelectedCategoryId}
-        onCreateCategory={handleCreateCategory}
-        onEditCategory={handleEditCategory}
-        onDeleteCategory={handleDeleteCategory}
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <TopBar onCreateNote={handleCreateNote} />
+    <PageTransitionWrapper direction="right">
+      <div className="flex h-screen bg-yellow-50 dark:bg-gray-950">
+        <Sidebar
+          categories={categories}
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={setSelectedCategoryId}
+          onCreateCategory={handleCreateCategory}
+          onEditCategory={handleEditCategory}
+          onDeleteCategory={handleDeleteCategory}
+        />
         
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredNotes.map((note: NoteWithCategory) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onEdit={handleEditNote}
-                onDelete={handleDeleteNote}
-              />
-            ))}
+        <div className="flex-1 flex flex-col">
+          <TopBar onCreateNote={handleCreateNote} />
+          
+          <div className="flex-1 p-6 overflow-y-auto">
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {filteredNotes.map((note: NoteWithCategory, index: number) => (
+                <motion.div
+                  key={note.id}
+                  variants={cardVariants}
+                  custom={index}
+                >
+                  <NoteCard
+                    note={note}
+                    onEdit={handleEditNote}
+                    onDelete={handleDeleteNote}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </div>
-      </div>
 
-      <CreateNoteModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        categories={categories}
-      />
-
-      {editingNote && (
-        <EditNoteModal
-          isOpen={!!editingNote}
-          onClose={() => setEditingNote(null)}
-          note={editingNote}
+        <CreateNoteModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
           categories={categories}
-          onUpdate={handleNoteUpdate}
         />
-      )}
 
-      <CategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => {
-          setIsCategoryModalOpen(false)
-          setEditingCategory(null)
-        }}
-        category={editingCategory || undefined}
-        onUpdate={handleCategoryUpdate}
-      />
-    </div>
+        {editingNote && (
+          <EditNoteModal
+            isOpen={!!editingNote}
+            onClose={() => setEditingNote(null)}
+            note={editingNote}
+            categories={categories}
+            onUpdate={handleNoteUpdate}
+          />
+        )}
+
+        <CategoryModal
+          isOpen={isCategoryModalOpen}
+          onClose={() => {
+            setIsCategoryModalOpen(false)
+            setEditingCategory(null)
+          }}
+          category={editingCategory || undefined}
+          onUpdate={handleCategoryUpdate}
+        />
+      </div>
+    </PageTransitionWrapper>
   )
 } 

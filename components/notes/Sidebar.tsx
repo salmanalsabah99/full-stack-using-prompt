@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { userId } = useUser()
 
   return (
-    <div className="w-64 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-4 flex flex-col">
+    <div className="w-64 h-screen bg-white/50 dark:bg-gray-900 border-r border-gray-200/50 dark:border-gray-800 p-4 flex flex-col">
       <div className="mb-8">
         <h2 className="font-medium text-gray-900 dark:text-gray-100">
           Notes
@@ -50,8 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onSelectCategory(null)}
             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
               selectedCategoryId === null
-                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                ? 'bg-white/80 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                : 'text-gray-700 hover:bg-white/80 dark:text-gray-300 dark:hover:bg-gray-800'
             }`}
           >
             All Notes
@@ -61,8 +61,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               key={category.id}
               className={`group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                 selectedCategoryId === category.id
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                  ? 'bg-white/80 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'text-gray-700 hover:bg-white/80 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
               <button

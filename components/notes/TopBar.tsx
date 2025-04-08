@@ -1,42 +1,35 @@
 'use client'
 
 import React from 'react'
-import { Plus, Sun, Moon } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface TopBarProps {
   onCreateNote: () => void
 }
 
 const TopBar: React.FC<TopBarProps> = ({ onCreateNote }) => {
-  const { theme, setTheme } = useTheme()
+  const router = useRouter()
 
   return (
-    <div className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 flex items-center justify-between">
-      <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-        All Notes
-      </h1>
-      
+    <div className="h-16 bg-white/50 border-b border-gray-200/50 px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </button>
-        
+        <h1 className="text-xl font-semibold text-gray-900">All Notes</h1>
         <button
           onClick={onCreateNote}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+          aria-label="Add note"
         >
-          <Plus className="h-4 w-4" />
-          <span>Add Note</span>
+          <Plus className="h-5 w-5" />
         </button>
       </div>
+
+      <button
+        onClick={() => router.push('/dashboard')}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+      >
+        Back to Dashboard
+      </button>
     </div>
   )
 }
