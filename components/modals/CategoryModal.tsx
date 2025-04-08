@@ -29,6 +29,20 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
     color: '#3B82F6', // Default blue color
   })
 
+  // Predefined color palette
+  const colorPalette = [
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#F59E0B', // Yellow
+    '#EF4444', // Red
+    '#8B5CF6', // Purple
+    '#EC4899', // Pink
+    '#6366F1', // Indigo
+    '#14B8A6', // Teal
+    '#F97316', // Orange
+    '#6B7280', // Gray
+  ]
+
   useEffect(() => {
     if (category) {
       setFormData({
@@ -90,26 +104,14 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={category ? 'Edit Category' : 'Create Category'}
+      title={category ? 'Edit Category' : 'New Category'}
       className="z-50"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {success && (
-          <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md">
-            Category {category ? 'updated' : 'created'} successfully!
-          </div>
-        )}
-
-        {error && (
-          <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-            {error}
-          </div>
-        )}
-
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             Name
           </label>
@@ -119,45 +121,52 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             disabled={isSubmitting}
-            placeholder="Enter category name"
+            placeholder="Category name"
           />
         </div>
 
         <div>
           <label
             htmlFor="color"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             Color
           </label>
-          <div className="mt-1 flex items-center gap-3">
-            <input
-              type="color"
-              id="color"
-              required
-              value={formData.color}
-              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-              className="h-8 w-8 rounded border border-gray-300"
-              disabled={isSubmitting}
-            />
-            <input
-              type="text"
-              value={formData.color}
-              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              disabled={isSubmitting}
-              placeholder="#000000"
-            />
+          <div className="mt-2">
+            <div className="flex flex-wrap gap-3">
+              {colorPalette.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, color })}
+                  className={`w-10 h-10 rounded-full transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                    formData.color === color ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : ''
+                  }`}
+                  style={{ backgroundColor: color }}
+                  aria-label={`Select color ${color}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3">
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
+
+        {success && (
+          <p className="text-sm text-green-600 dark:text-green-400">
+            Category saved successfully!
+          </p>
+        )}
+
+        <div className="flex justify-end space-x-3 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
             disabled={isSubmitting}
           >
             Cancel
@@ -165,15 +174,9 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting || !formData.name.trim()}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
           >
-            {isSubmitting
-              ? category
-                ? 'Saving...'
-                : 'Creating...'
-              : category
-              ? 'Save Changes'
-              : 'Create Category'}
+            {isSubmitting ? 'Saving...' : category ? 'Save Changes' : 'Create Category'}
           </button>
         </div>
       </form>
