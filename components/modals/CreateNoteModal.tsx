@@ -4,13 +4,19 @@ import React, { useState } from 'react'
 import { useUser } from '@/context/UserContext'
 import BaseModal from './BaseModal'
 import { useSWRConfig } from 'swr'
+import { NoteCategory } from '@/types/note'
 
 interface CreateNoteModalProps {
   isOpen: boolean
   onClose: () => void
+  categories?: NoteCategory[]
 }
 
-const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isOpen, onClose }) => {
+const CreateNoteModal: React.FC<CreateNoteModalProps> = ({
+  isOpen,
+  onClose,
+  categories = [],
+}) => {
   const { userId } = useUser()
   const { mutate } = useSWRConfig()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -18,7 +24,8 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isOpen, onClose }) =>
   const [success, setSuccess] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
-    content: ''
+    content: '',
+    categoryId: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,9 +55,9 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isOpen, onClose }) =>
 
     console.log('Submitting new NOTE with userId:', userId)
     console.log('Payload:', {
+      ...formData,
+      categoryId: formData.categoryId || null,
       userId,
-      title: formData.title.trim(),
-      content: formData.content.trim(),
     })
 
     try {
@@ -60,31 +67,30 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isOpen, onClose }) =>
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          ...formData,
+          categoryId: formData.categoryId || null,
           userId,
-          title: formData.title.trim(),
-          content: formData.content.trim(),
         }),
       })
 
       const data = await response.json()
 
-      if (!response.ok) {
-        console.error('API Error:', data)
+      if (!data.success) {
         throw new Error(data.error || 'Failed to create note')
       }
 
       console.log('Note created successfully:', data)
 
-      // Show success message briefly
       setSuccess(true)
-      
-      // Refresh the notes data
-      await mutate(`/api/notes?userId=${userId}`)
-      
-      // Close modal after a short delay
+      mutate('/api/notes') // Revalidate notes list
       setTimeout(() => {
-        setSuccess(false)
         onClose()
+        setFormData({
+          title: '',
+          content: '',
+          categoryId: '',
+        })
+        setSuccess(false)
       }, 1000)
     } catch (err) {
       console.error('Network or JSON error:', err)
@@ -95,9 +101,9 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isOpen, onClose }) =>
   }
 
   return (
-    <BaseModal 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
       title="Create New Note"
       size="md"
       className="max-h-[90vh] overflow-y-auto"
@@ -146,6 +152,31 @@ const CreateNoteModal: React.FC<CreateNoteModalProps> = ({ isOpen, onClose }) =>
               disabled={isSubmitting}
               placeholder="Enter note content"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Category
+            </label>
+            <select
+              id="category"
+              value={formData.categoryId}
+              onChange={(e) =>
+                setFormData({ ...formData, categoryId: e.target.value })
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              disabled={isSubmitting}
+            >
+              <option value="">No Category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

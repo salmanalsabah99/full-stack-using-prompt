@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id              String     @id @default(cuid())
-  email           String     @unique
+  id              String         @id @default(cuid())
+  email           String         @unique
   name            String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   password        String
-  resetToken      String?    @unique
+  resetToken      String?        @unique
   resetTokenExpiry DateTime?
   events          Event[]
   notes           Note[]
   taskLists       TaskList[]
   tasks           Task[]
+  noteCategories  NoteCategory[]
 
   @@map("users")
 }
@@ -83,22 +84,39 @@ model Event {
 }
 
 model Note {
-  id        String   @id @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  taskId    String?
-  eventId   String?
-  event     Event?   @relation(fields: [eventId], references: [id])
-  task      Task?    @relation(fields: [taskId], references: [id])
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String       @id @default(cuid())
+  title       String
+  content     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      String
+  taskId      String?
+  eventId     String?
+  categoryId  String?
+  event       Event?       @relation(fields: [eventId], references: [id])
+  task        Task?        @relation(fields: [taskId], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    NoteCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([eventId], map: "notes_eventId_fkey")
   @@index([taskId], map: "notes_taskId_fkey")
   @@index([userId], map: "notes_userId_fkey")
+  @@index([categoryId], map: "notes_categoryId_fkey")
   @@map("notes")
+}
+
+model NoteCategory {
+  id        String   @id @default(cuid())
+  name      String
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     Note[]
+
+  @@index([userId], map: "note_categories_userId_fkey")
+  @@map("note_categories")
 }
 
 enum TaskStatus {

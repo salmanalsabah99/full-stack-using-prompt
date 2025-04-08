@@ -3,42 +3,45 @@
 import React, { useState, useEffect } from 'react'
 import { useSWRConfig } from 'swr'
 import BaseModal from './BaseModal'
-import { NoteWithCategory, NoteCategory } from '@/types/note'
+import { NoteCategory } from '@/types/note'
+import { useUser } from '@/context/UserContext'
 
-interface EditNoteModalProps {
+interface CategoryModalProps {
   isOpen: boolean
   onClose: () => void
-  note: NoteWithCategory
-  categories?: NoteCategory[]
+  category?: NoteCategory
   onUpdate?: () => void
 }
 
-const EditNoteModal: React.FC<EditNoteModalProps> = ({
+const CategoryModal: React.FC<CategoryModalProps> = ({
   isOpen,
   onClose,
-  note,
-  categories = [],
+  category,
   onUpdate,
 }) => {
   const { mutate } = useSWRConfig()
+  const { userId } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [formData, setFormData] = useState({
-    title: note.title,
-    content: note.content,
-    categoryId: note.categoryId || '',
+    name: '',
+    color: '#3B82F6', // Default blue color
   })
 
   useEffect(() => {
-    if (note) {
+    if (category) {
       setFormData({
-        title: note.title,
-        content: note.content,
-        categoryId: note.categoryId || '',
+        name: category.name,
+        color: category.color,
+      })
+    } else {
+      setFormData({
+        name: '',
+        color: '#3B82F6',
       })
     }
-  }, [note])
+  }, [category])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,25 +49,30 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`/api/notes/${note.id}`, {
-        method: 'PUT',
+      const url = category
+        ? `/api/note-categories/${category.id}`
+        : '/api/note-categories'
+      const method = category ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...formData,
-          categoryId: formData.categoryId || null,
+          userId,
         }),
       })
 
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to update note')
+        throw new Error(data.error || 'Failed to save category')
       }
 
       setSuccess(true)
-      mutate('/api/notes') // Revalidate notes list
+      mutate('/api/note-categories') // Revalidate categories list
       if (onUpdate) {
         onUpdate()
       }
@@ -72,7 +80,7 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({
         onClose()
       }, 1000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update note')
+      setError(err instanceof Error ? err.message : 'Failed to save category')
     } finally {
       setIsSubmitting(false)
     }
@@ -82,13 +90,13 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Note"
+      title={category ? 'Edit Category' : 'Create Category'}
       className="z-50"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {success && (
           <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md">
-            Note updated successfully!
+            Category {category ? 'updated' : 'created'} successfully!
           </div>
         )}
 
@@ -100,65 +108,49 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({
 
         <div>
           <label
-            htmlFor="title"
+            htmlFor="name"
             className="block text-sm font-medium text-gray-700"
           >
-            Title
+            Name
           </label>
           <input
             type="text"
-            id="title"
+            id="name"
             required
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             disabled={isSubmitting}
-            placeholder="Enter note title"
+            placeholder="Enter category name"
           />
         </div>
 
         <div>
           <label
-            htmlFor="content"
+            htmlFor="color"
             className="block text-sm font-medium text-gray-700"
           >
-            Content
+            Color
           </label>
-          <textarea
-            id="content"
-            required
-            rows={6}
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm resize-none"
-            disabled={isSubmitting}
-            placeholder="Enter note content"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Category
-          </label>
-          <select
-            id="category"
-            value={formData.categoryId}
-            onChange={(e) =>
-              setFormData({ ...formData, categoryId: e.target.value })
-            }
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            disabled={isSubmitting}
-          >
-            <option value="">No Category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          <div className="mt-1 flex items-center gap-3">
+            <input
+              type="color"
+              id="color"
+              required
+              value={formData.color}
+              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+              className="h-8 w-8 rounded border border-gray-300"
+              disabled={isSubmitting}
+            />
+            <input
+              type="text"
+              value={formData.color}
+              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              disabled={isSubmitting}
+              placeholder="#000000"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end space-x-3">
@@ -172,10 +164,16 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || !formData.title.trim() || !formData.content.trim()}
+            disabled={isSubmitting || !formData.name.trim()}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting
+              ? category
+                ? 'Saving...'
+                : 'Creating...'
+              : category
+              ? 'Save Changes'
+              : 'Create Category'}
           </button>
         </div>
       </form>
@@ -183,4 +181,4 @@ const EditNoteModal: React.FC<EditNoteModalProps> = ({
   )
 }
 
-export default EditNoteModal 
+export default CategoryModal 

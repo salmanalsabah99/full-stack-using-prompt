@@ -1,11 +1,22 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '../../../lib/prisma'
+import { prisma } from '@/lib/prisma'
+import { Note, NoteCategory } from '@prisma/client'
 import { CreateNoteInput, NotesResponse, NoteResponse } from '../../../types'
 import { verifyAuth, JWTPayload } from '../../../lib/auth'
 
+interface NoteWithRelations extends Note {
+  category?: NoteCategory | null
+}
+
+type ApiResponse<T> = {
+  success: boolean
+  data?: T
+  error?: string
+}
+
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<NotesResponse | NoteResponse>
+  res: NextApiResponse<ApiResponse<NoteWithRelations | NoteWithRelations[]>>
 ) {
   const authResult = await verifyAuth(req, res)
   
@@ -19,128 +30,58 @@ export default async function handler(
   const userId = authResult.userId
 
   if (req.method === 'GET') {
+    const { userId } = req.query
+
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ success: false, error: 'User ID is required' })
+    }
+
     try {
       const notes = await prisma.note.findMany({
-        where: {
-          userId: userId
+        where: { userId },
+        include: {
+          category: true,
+          task: true,
+          event: true
+        },
+        orderBy: {
+          updatedAt: 'desc'
         }
       })
 
-      return res.status(200).json({
-        success: true,
-        data: notes.map(note => ({
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          createdAt: note.createdAt.toISOString(),
-          updatedAt: note.updatedAt.toISOString(),
-          userId: note.userId,
-          taskId: note.taskId,
-          eventId: note.eventId
-        }))
-      })
+      return res.status(200).json({ success: true, data: notes })
     } catch (error) {
       console.error('Error fetching notes:', error)
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to fetch notes'
-      })
+      return res.status(500).json({ success: false, error: 'Error fetching notes' })
     }
   }
 
   if (req.method === 'POST') {
+    const { title, content, userId, categoryId } = req.body
+
+    if (!title || !content || !userId) {
+      return res.status(400).json({ success: false, error: 'Title, content, and userId are required' })
+    }
+
     try {
-      const input: CreateNoteInput = req.body
-
-      // Validate required fields
-      if (!input.title || !input.content) {
-        return res.status(400).json({
-          success: false,
-          error: 'Title and content are required'
-        })
-      }
-
-      // Verify user exists
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      })
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        })
-      }
-
-      // If taskId is provided, verify it exists and belongs to the user
-      if (input.taskId) {
-        const task = await prisma.task.findFirst({
-          where: {
-            id: input.taskId,
-            userId: userId
-          }
-        })
-
-        if (!task) {
-          return res.status(404).json({
-            success: false,
-            error: 'Task not found or does not belong to user'
-          })
-        }
-      }
-
-      // If eventId is provided, verify it exists and belongs to the user
-      if (input.eventId) {
-        const event = await prisma.event.findFirst({
-          where: {
-            id: input.eventId,
-            userId: userId
-          }
-        })
-
-        if (!event) {
-          return res.status(404).json({
-            success: false,
-            error: 'Event not found or does not belong to user'
-          })
-        }
-      }
-
-      // Create note
       const note = await prisma.note.create({
         data: {
-          title: input.title,
-          content: input.content,
-          userId: userId,
-          taskId: input.taskId,
-          eventId: input.eventId
+          title,
+          content,
+          userId,
+          ...(categoryId && { categoryId })
+        },
+        include: {
+          category: true
         }
       })
 
-      return res.status(201).json({
-        success: true,
-        data: {
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          createdAt: note.createdAt.toISOString(),
-          updatedAt: note.updatedAt.toISOString(),
-          userId: note.userId,
-          taskId: note.taskId,
-          eventId: note.eventId
-        }
-      })
+      return res.status(201).json({ success: true, data: note })
     } catch (error) {
       console.error('Error creating note:', error)
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to create note'
-      })
+      return res.status(500).json({ success: false, error: 'Error creating note' })
     }
   }
 
-  return res.status(405).json({
-    success: false,
-    error: 'Method not allowed'
-  })
+  return res.status(405).json({ success: false, error: 'Method not allowed' })
 } 

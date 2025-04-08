@@ -31,12 +31,20 @@ export default async function handler(
         })
       }
 
+      // Prepare update data
+      const updateData: any = {
+        title: input.title,
+        content: input.content
+      }
+
+      // Only include categoryId if it's provided
+      if (input.categoryId !== undefined) {
+        updateData.categoryId = input.categoryId
+      }
+
       const updatedNote = await prisma.note.update({
         where: { id },
-        data: {
-          title: input.title,
-          content: input.content
-        }
+        data: updateData
       })
 
       // Format dates for response
