@@ -148,7 +148,10 @@ Use this prompt format when building new features, fixing bugs, or doing anythin
 
 
 
-https://github.com/user-attachments/assets/d54ad1f3-554f-4664-a4e9-c5e9fb5378af
+
+
+https://github.com/user-attachments/assets/6007e8bd-03d4-47b7-85be-36834dbb5054
+
 
 
 
