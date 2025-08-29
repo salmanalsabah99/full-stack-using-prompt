@@ -1,6 +1,6 @@
 # 🎙️ Voice-to-Code
 
-**Status:** 🚧 Work in Progress  
+**Status:** Done
 **Type:** Prompt-to-Code Experiment / Full-Stack via Voice / Cursor Playground  
 
 ---
